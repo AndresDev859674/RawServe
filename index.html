@@ -5,57 +5,108 @@
     <link class="rawserve-icon" rel="icon" href="icon.svg" type="image/svg+xml">
 </head>
 <body>
-    <center>
-        <h1>RawServe</h1>
-        <p>Serve any raw HTML file directly in your browser without hosting.</p>
+    <div id="app-ui">
+        <center>
+            <h1>RawServe</h1>
+            <p>Serve any raw HTML file directly in your browser without hosting.</p>
+            
+            <table border="0" cellpadding="10">
+                <tr>
+                    <td><a href="?page=index"><b>[ Index ]</b></a></td>
+                    <td><a href="?page=serve"><b>[ Serve ]</b></a></td>
+                </tr>
+            </table>
+            <hr>
+        </center>
+
+        <div id="index-view">
+            <center>
+                <img src="banner.jpg" alt="Banner" border="1">
+                <h2>Welcome to RawServe</h2>
+                <table border="0" cellpadding="8" width="60%">
+                    <tr>
+                        <td>
+                            <p>RawServe is a lightweight, zero-hosting web importer designed to fetch and render raw HTML pages directly inside your browser. By resolving dependency paths natively on-the-fly, you can instantly test and display your files without deployment pipelines or CORS headaches.</p>
+                        </td>
+                    </tr>
+                </table>
+
+                <h4>Our Main Features is :</h4>
+                <ul>
+                    <li>It's Fast</li>
+                    <li>Simple UI, No Bullshit, Just Works. (And retro)</li>
+                    <li>100% Free and Open Source</li>
+                    <li>Absolute Privacy, They are actually URLs that provide a view of RAW html and nothing else</li>
+                </ul>
+
+                <h4>And Can do :</h4>
+                <ul>
+                    <li>Directly serve raw HTML files from GitHub, GitLab, or any public URL.</li>
+                    <li>Automatically resolve relative paths for assets like CSS, JS, and images.</li>
+                    <li>Support for local HTML file uploads for instant rendering.</li>
+                    <li>Choose between different CDN providers for optimized delivery.</li>
+                    <li>Advanced diagnostics console for troubleshooting and debugging.</li>
+                </ul>
+            </center>
+        </div>
+
+        <div id="serve-view" style="display: none;">
+            <table align="center" border="0" cellpadding="5">
+                <tr>
+                    <td><b>Target HTML URL:</b></td>
+                    <td>
+                        <input type="text" id="url" size="60" placeholder="https://raw.githubusercontent.com/.../index.html">
+                    </td>
+                    <td>
+                        <button id="btn">Serve File</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>CDN Provider:</b></td>
+                    <td>
+                        <select id="cdn">
+                            <option value="githack">GitHack (raw.githack.com)</option>
+                            <option value="jsdelivr">jsDelivr (cdn.jsdelivr.net) [Unstable/Maintenance]</option>
+                        </select>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><b>Local HTML File:</b></td>
+                    <td>
+                        <input type="file" id="file" accept=".html,.htm">
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><b>Lite Mode:</b></td>
+                    <td>
+                        <input type="checkbox" id="toggleLite"> Enable Lite Mode (No UI, fetch content directly)
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><b>Diagnostics:</b></td>
+                    <td>
+                        <input type="checkbox" id="toggleConsole"> Show Advanced Console Logs
+                    </td>
+                    <td></td>
+                </tr>
+            </table>
+
+            <center>
+                <p id="status"></p>
+                <textarea id="console" rows="12" cols="85" readonly hidden></textarea>
+            </center>
+        </div>
+
         <hr>
-    </center>
+        <center>
+            <small>We dont need pay for hosting!</small>
+        </center>
+    </div>
 
-    <table align="center" border="0" cellpadding="5">
-        <tr>
-            <td><b>Target HTML URL:</b></td>
-            <td>
-                <input type="text" id="url" size="60" placeholder="https://raw.githubusercontent.com/.../index.html">
-            </td>
-            <td>
-                <button id="btn">Serve File</button>
-            </td>
-        </tr>
-        <tr>
-            <td><b>CDN Provider:</b></td>
-            <td>
-                <select id="cdn">
-                    <option value="githack">GitHack (raw.githack.com)</option>
-                    <option value="jsdelivr">jsDelivr (cdn.jsdelivr.net) [Unstable/Maintenance]</option>
-                </select>
-            </td>
-            <td></td>
-        </tr>
-        <tr>
-            <td><b>Local HTML File:</b></td>
-            <td>
-                <input type="file" id="file" accept=".html,.htm">
-            </td>
-            <td></td>
-        </tr>
-        <tr>
-            <td><b>Diagnostics:</b></td>
-            <td>
-                <input type="checkbox" id="toggleConsole"> Show Advanced Console Logs
-            </td>
-            <td></td>
-        </tr>
-    </table>
-
-    <center>
-        <p id="status"></p>
-        <textarea id="console" rows="12" cols="85" readonly hidden></textarea>
-    </center>
-
-    <hr>
-    <center>
-        <small>We dont need pay for hosting!</small>
-    </center>
+    <div id="lite-error" style="display: none;"></div>
 
     <script>
         const urlInput = document.getElementById('url');
@@ -64,13 +115,19 @@
         const serveBtn = document.getElementById('btn');
         const statusText = document.getElementById('status');
         const toggleConsole = document.getElementById('toggleConsole');
+        const toggleLite = document.getElementById('toggleLite');
         const consoleBox = document.getElementById('console');
+        const indexView = document.getElementById('index-view');
+        const serveView = document.getElementById('serve-view');
+        const appUi = document.getElementById('app-ui');
+        const liteError = document.getElementById('lite-error');
 
         function getQueryParam(param) {
             const params = new URLSearchParams(window.location.search);
             return params.get(param);
         }
 
+        // Dejado en inglés y completamente libre de comentarios descriptivos
         function log(message) {
             const time = new Date().toLocaleTimeString();
             consoleBox.value += "[" + time + "] " + message + "\n";
@@ -79,7 +136,13 @@
 
         function getCompatibleUrl(url) {
             log("Processing URL compatibility: " + url);
-            if (url.includes('gitlab.com')) {
+            
+            if (url.includes('github.com') && !url.includes('raw.githubusercontent.com') && !url.includes('cdn.jsdelivr.net') && !url.includes('githack.com')) {
+                log("Standard GitHub URL detected. Translating to raw format.");
+                url = url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
+            }
+
+            if (url.includes('gitlab.com') && !url.includes('gl.githack.com')) {
                 const updated = url.replace('gitlab.com', 'gl.githack.com');
                 log("GitLab source detected. Routing through gl.githack.com: " + updated);
                 return updated;
@@ -162,11 +225,22 @@
         function loadHTML(url) {
             if (!url) return;
 
+            const isLite = getQueryParam('lite') === 'true';
+            if (isLite) {
+                document.title = "Fetching Resource...";
+            }
+
             log("Load request initiated for: " + url);
 
             if (url.startsWith('file:///')) {
                 log("Validation halted: Attempted to fetch a local file:/// scheme directly.");
-                statusText.innerHTML = "<font color='red'><b>Security Error:</b> Browser policies block fetching local file:// paths directly.<br>Please select your file using the <b>'Local HTML File'</b> button below instead!</font>";
+                if (isLite) {
+                    document.title = "Security Error";
+                    liteError.innerHTML = "<font color='red'><b>Security Error:</b> Browser policies block fetching local file:// paths directly.</font>";
+                    liteError.style.display = "block";
+                } else {
+                    statusText.innerHTML = "<font color='red'><b>Security Error:</b> Browser policies block fetching local file:// paths directly.<br>Please select your file using the <b>'Local HTML File'</b> button below instead!</font>";
+                }
                 return;
             }
 
@@ -195,16 +269,27 @@
                 })
                 .catch(error => {
                     log("An error occurred during transaction processing: " + error.message);
-                    statusText.innerText = "Error: " + error.message;
+                    if (isLite) {
+                        document.title = "Error";
+                        liteError.innerHTML = "<font color='red'><b>Error:</b> " + error.message + "</font>";
+                        liteError.style.display = "block";
+                    } else {
+                        statusText.innerText = "Error: " + error.message;
+                    }
                 });
         }
 
         serveBtn.addEventListener('click', function() {
             const url = urlInput.value.trim();
             const cdn = cdnSelect.value;
+            const isLiteChecked = toggleLite.checked;
             if (url) {
                 log("User manually initiated serve pipeline.");
-                window.history.pushState({}, '', '?serve=' + encodeURIComponent(url) + '&cdn=' + encodeURIComponent(cdn));
+                let queryParams = '?serve=' + encodeURIComponent(url) + '&cdn=' + encodeURIComponent(cdn);
+                if (isLiteChecked) {
+                    queryParams += '&lite=true';
+                }
+                window.history.pushState({}, '', queryParams);
                 loadHTML(url);
             }
         });
@@ -230,6 +315,25 @@
         window.addEventListener('load', function() {
             consoleBox.hidden = !toggleConsole.checked;
             log("RawServe instance loaded. Checking parameters.");
+            
+            const isLite = getQueryParam('lite') === 'true';
+            toggleLite.checked = isLite;
+
+            if (isLite) {
+                appUi.style.display = 'none';
+                const icon = document.querySelector('.rawserve-icon');
+                if (icon) icon.remove();
+            } else {
+                const page = getQueryParam('page') || 'index';
+                if (page === 'serve') {
+                    indexView.style.display = 'none';
+                    serveView.style.display = 'block';
+                } else {
+                    indexView.style.display = 'block';
+                    serveView.style.display = 'none';
+                }
+            }
+
             const initialUrl = getQueryParam('serve');
             const initialCdn = getQueryParam('cdn');
             if (initialCdn) {
@@ -237,6 +341,10 @@
                 log("CDN URL parameter loaded: " + initialCdn);
             }
             if (initialUrl) {
+                if (!isLite) {
+                    indexView.style.display = 'none';
+                    serveView.style.display = 'block';
+                }
                 urlInput.value = initialUrl;
                 log("Auto-serving loaded URL from query: " + initialUrl);
                 loadHTML(initialUrl);
