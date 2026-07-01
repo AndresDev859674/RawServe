@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RawServe - Web Importer</title>
+    <link class="rawserve-icon" rel="icon" href="icon.svg" type="image/svg+xml">
+</head>
+<body>
+    <center>
+        <h1>RawServe</h1>
+        <p>Serve any raw HTML file directly in your browser without hosting.</p>
+        <hr>
+    </center>
+
+    <table align="center" border="0" cellpadding="5">
+        <tr>
+            <td><b>Target HTML URL:</b></td>
+            <td>
+                <input type="text" id="url" size="60" placeholder="https://raw.githubusercontent.com/.../index.html">
+            </td>
+            <td>
+                <button id="btn">Serve File</button>
+            </td>
+        </tr>
+        <tr>
+            <td><b>Local HTML File:</b></td>
+            <td>
+                <input type="file" id="file" accept=".html,.htm">
+            </td>
+            <td></td>
+        </tr>
+    </table>
+
+    <center>
+        <p id="status"></p>
+    </center>
+
+    <hr>
+    <center>
+        <small>We dont need pay for hosting!</small>
+    </center>
+
+    <script>
+        const urlInput = document.getElementById('url');
+        const fileInput = document.getElementById('file');
+        const serveBtn = document.getElementById('btn');
+        const statusText = document.getElementById('status');
+
+        function getQueryParam(param) {
+            const params = new URLSearchParams(window.location.search);
+            return params.get(param);
+        }
+
+        function getCompatibleUrl(url) {
+            if (url.includes('raw.githubusercontent.com')) {
+                return url.replace('raw.githubusercontent.com', 'raw.githack.com');
+            }
+            return url;
+        }
+
+        function renderHTML(html, baseUri) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            if (baseUri) {
+                const baseTag = doc.createElement('base');
+                baseTag.href = getCompatibleUrl(baseUri);
+                if (doc.head) {
+                    doc.head.insertBefore(baseTag, doc.head.firstChild);
+                } else {
+                    const head = doc.createElement('head');
+                    head.appendChild(baseTag);
+                    doc.documentElement.insertBefore(head, doc.documentElement.firstChild);
+                }
+            }
+
+            const icons = doc.querySelectorAll('link[rel*="icon"]');
+            icons.forEach(icon => {
+                const href = icon.getAttribute('href');
+                if (href && !href.startsWith('http://') && !href.startsWith('https://') && !href.startsWith('data:')) {
+                    try {
+                        icon.href = new URL(href, baseUri).href;
+                    } catch (e) {}
+                }
+            });
+
+            document.open();
+            document.write('<!DOCTYPE html>' + doc.documentElement.outerHTML);
+            document.close();
+        }
+
+        function loadHTML(url) {
+            if (!url) return;
+
+            if (url.startsWith('file:///')) {
+                statusText.innerHTML = "<font color='red'><b>Security Error:</b> Browser policies block fetching local file:// paths directly.<br>Please select your file using the <b>'Local HTML File'</b> button below instead!</font>";
+                return;
+            }
+
+            statusText.innerText = "Fetching resource...";
+
+            const fetchUrl = getCompatibleUrl(url);
+
+            fetch(fetchUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Network response was not OK");
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    statusText.innerText = "Rendering content...";
+                    const baseUri = url.substring(0, url.lastIndexOf('/') + 1);
+                    renderHTML(html, baseUri);
+                })
+                .catch(error => {
+                    statusText.innerText = "Error: " + error.message;
+                });
+        }
+
+        serveBtn.addEventListener('click', function() {
+            const url = urlInput.value.trim();
+            if (url) {
+                window.history.pushState({}, '', '?serve=' + encodeURIComponent(url));
+                loadHTML(url);
+            }
+        });
+
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            statusText.innerText = "Reading local file...";
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                renderHTML(evt.target.result, "");
+            };
+            reader.readAsText(file);
+        });
+
+        window.addEventListener('load', function() {
+            const initialUrl = getQueryParam('serve');
+            if (initialUrl) {
+                urlInput.value = initialUrl;
+                loadHTML(initialUrl);
+            }
+        });
+    </script>
+</body>
+</html>
