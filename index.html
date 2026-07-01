@@ -22,9 +22,26 @@
             </td>
         </tr>
         <tr>
+            <td><b>CDN Provider:</b></td>
+            <td>
+                <select id="cdn">
+                    <option value="githack">GitHack (raw.githack.com)</option>
+                    <option value="jsdelivr">jsDelivr (cdn.jsdelivr.net) [Unstable/Maintenance]</option>
+                </select>
+            </td>
+            <td></td>
+        </tr>
+        <tr>
             <td><b>Local HTML File:</b></td>
             <td>
                 <input type="file" id="file" accept=".html,.htm">
+            </td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><b>Diagnostics:</b></td>
+            <td>
+                <input type="checkbox" id="toggleConsole"> Show Advanced Console Logs
             </td>
             <td></td>
         </tr>
@@ -32,6 +49,7 @@
 
     <center>
         <p id="status"></p>
+        <textarea id="console" rows="12" cols="85" readonly hidden></textarea>
     </center>
 
     <hr>
@@ -42,28 +60,74 @@
     <script>
         const urlInput = document.getElementById('url');
         const fileInput = document.getElementById('file');
+        const cdnSelect = document.getElementById('cdn');
         const serveBtn = document.getElementById('btn');
         const statusText = document.getElementById('status');
+        const toggleConsole = document.getElementById('toggleConsole');
+        const consoleBox = document.getElementById('console');
 
         function getQueryParam(param) {
             const params = new URLSearchParams(window.location.search);
             return params.get(param);
         }
 
+        function log(message) {
+            const time = new Date().toLocaleTimeString();
+            consoleBox.value += "[" + time + "] " + message + "\n";
+            consoleBox.scrollTop = consoleBox.scrollHeight;
+        }
+
         function getCompatibleUrl(url) {
-            if (url.includes('raw.githubusercontent.com')) {
-                return url.replace('raw.githubusercontent.com', 'raw.githack.com');
+            log("Processing URL compatibility: " + url);
+            if (url.includes('gitlab.com')) {
+                const updated = url.replace('gitlab.com', 'gl.githack.com');
+                log("GitLab source detected. Routing through gl.githack.com: " + updated);
+                return updated;
             }
-            return url;
+            if (!url.includes('raw.githubusercontent.com')) {
+                log("Non-GitHub source detected. No proxy translation needed.");
+                return url;
+            }
+            const provider = cdnSelect.value;
+            log("GitHub source detected. Target provider: " + provider);
+            if (provider === 'jsdelivr') {
+                const clean = url.replace('https://raw.githubusercontent.com/', '');
+                const parts = clean.split('/');
+                if (parts.length < 3) {
+                    log("Aborting jsDelivr parsing due to invalid path structure.");
+                    return url;
+                }
+                const user = parts[0];
+                const repo = parts[1];
+                let ref = '';
+                let path = '';
+                if (parts[2] === 'refs' && parts[3] === 'heads' && parts.length > 4) {
+                    ref = 'refs/heads/' + parts[4];
+                    path = parts.slice(5).join('/');
+                } else {
+                    ref = parts[2];
+                    path = parts.slice(3).join('/');
+                }
+                const updated = 'https://cdn.jsdelivr.net/gh/' + user + '/' + repo + '@' + ref + '/' + path;
+                log("Constructed jsDelivr URL: " + updated);
+                return updated;
+            } else {
+                const updated = url.replace('raw.githubusercontent.com', 'raw.githack.com');
+                log("Constructed GitHack URL: " + updated);
+                return updated;
+            }
         }
 
         function renderHTML(html, baseUri) {
+            log("Initializing HTML rendering context...");
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
 
             if (baseUri) {
+                const resolvedBase = getCompatibleUrl(baseUri);
+                log("Injecting <base> tag to document root. Target URI: " + resolvedBase);
                 const baseTag = doc.createElement('base');
-                baseTag.href = getCompatibleUrl(baseUri);
+                baseTag.href = resolvedBase;
                 if (doc.head) {
                     doc.head.insertBefore(baseTag, doc.head.firstChild);
                 } else {
@@ -73,35 +137,51 @@
                 }
             }
 
+            log("Analyzing asset icon declarations inside document...");
             const icons = doc.querySelectorAll('link[rel*="icon"]');
             icons.forEach(icon => {
                 const href = icon.getAttribute('href');
                 if (href && !href.startsWith('http://') && !href.startsWith('https://') && !href.startsWith('data:')) {
                     try {
-                        icon.href = new URL(href, baseUri).href;
-                    } catch (e) {}
+                        const resolvedIcon = new URL(href, baseUri).href;
+                        icon.href = resolvedIcon;
+                        log("Resolved relative icon asset to absolute URL: " + href + " -> " + resolvedIcon);
+                    } catch (e) {
+                        log("Failed to resolve icon reference: " + href);
+                    }
                 }
             });
 
+            log("Rewriting document DOM stream...");
             document.open();
             document.write('<!DOCTYPE html>' + doc.documentElement.outerHTML);
             document.close();
+            log("Rendering operations completed.");
         }
 
         function loadHTML(url) {
             if (!url) return;
 
+            log("Load request initiated for: " + url);
+
             if (url.startsWith('file:///')) {
+                log("Validation halted: Attempted to fetch a local file:/// scheme directly.");
                 statusText.innerHTML = "<font color='red'><b>Security Error:</b> Browser policies block fetching local file:// paths directly.<br>Please select your file using the <b>'Local HTML File'</b> button below instead!</font>";
                 return;
             }
 
             statusText.innerText = "Fetching resource...";
 
-            const fetchUrl = getCompatibleUrl(url);
+            let fetchUrl = getCompatibleUrl(url);
+            if (fetchUrl.includes('cdn.jsdelivr.net') && (fetchUrl.endsWith('.html') || fetchUrl.endsWith('.htm'))) {
+                log("jsDelivr detected on a raw HTML file. Redirecting initial fetch target to GitHack to bypass MIME execution restrictions.");
+                fetchUrl = url.replace('raw.githubusercontent.com', 'raw.githack.com');
+            }
 
+            log("Fetching active resource from URL: " + fetchUrl);
             fetch(fetchUrl)
                 .then(response => {
+                    log("Network response received. Status code: " + response.status + " (" + response.statusText + ")");
                     if (!response.ok) {
                         throw new Error("Network response was not OK");
                     }
@@ -110,17 +190,21 @@
                 .then(html => {
                     statusText.innerText = "Rendering content...";
                     const baseUri = url.substring(0, url.lastIndexOf('/') + 1);
+                    log("Computing base directory path: " + baseUri);
                     renderHTML(html, baseUri);
                 })
                 .catch(error => {
+                    log("An error occurred during transaction processing: " + error.message);
                     statusText.innerText = "Error: " + error.message;
                 });
         }
 
         serveBtn.addEventListener('click', function() {
             const url = urlInput.value.trim();
+            const cdn = cdnSelect.value;
             if (url) {
-                window.history.pushState({}, '', '?serve=' + encodeURIComponent(url));
+                log("User manually initiated serve pipeline.");
+                window.history.pushState({}, '', '?serve=' + encodeURIComponent(url) + '&cdn=' + encodeURIComponent(cdn));
                 loadHTML(url);
             }
         });
@@ -128,22 +212,36 @@
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
+            log("Local file chosen: " + file.name + " (" + file.size + " bytes)");
             statusText.innerText = "Reading local file...";
             const reader = new FileReader();
             reader.onload = function(evt) {
+                log("Local file read successful. Loading content into renderer.");
                 renderHTML(evt.target.result, "");
             };
             reader.readAsText(file);
         });
 
+        toggleConsole.addEventListener('change', function() {
+            consoleBox.hidden = !this.checked;
+            log("Diagnostics toggle status changed. Console visibility: " + this.checked);
+        });
+
         window.addEventListener('load', function() {
+            consoleBox.hidden = !toggleConsole.checked;
+            log("RawServe instance loaded. Checking parameters.");
             const initialUrl = getQueryParam('serve');
+            const initialCdn = getQueryParam('cdn');
+            if (initialCdn) {
+                cdnSelect.value = initialCdn;
+                log("CDN URL parameter loaded: " + initialCdn);
+            }
             if (initialUrl) {
                 urlInput.value = initialUrl;
+                log("Auto-serving loaded URL from query: " + initialUrl);
                 loadHTML(initialUrl);
             }
         });
     </script>
 </body>
 </html>
- 
