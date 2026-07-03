@@ -10,6 +10,7 @@
             if (match) {
                 document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">');
                 document.write('<link href="https://unpkg.com/nes.icons@latest/css/nes-icons.min.css" rel="stylesheet" />');
+                document.write('<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" rel="stylesheet" />');
             }
         })();
     </script>
@@ -395,7 +396,7 @@
                                     <i class="nes-icon github is-large"></i> <a href="https://github.com/AndresDev859674/rawserve" target="_blank">GitHub Repository</a>,
                                     <i class="nes-icon eye"></i> <a href="https://raw.githubusercontent.com/AndresDev859674/RawServe/refs/heads/main/index.html" target="_blank">RAW index.html</a>,
 
-                                    <i class="nes-icon database"></i> <a href="?page=top" target="_blank">Pages From rawserve</a>
+                                    <i class="nes-icon database"></i> <a href="?page=top">Pages From rawserve</a>
                                     </center>
                                 </td>
                             </tr>
@@ -515,14 +516,27 @@
                     </center>
                 </div>
 
-                <div id="top-view" style="display: none;">
-                    <table id="issues-table" border="0" cellpadding="8" width="70%">
-                    <center>
-                        <h2>Pages served by RawServe</h2>
-                    T :
-                   <a href="?serve=b64_aHR0cHM6Ly9naXRsYWIuY29tL0FuZHJlc0Rldjg1OTY3NC90cmVlLWJyb2tlLXRyZWUvLS9yYXcvbWFpbi9UcmVlX2Jyb2tlX1RyZWUuaHRtbD9yZWZfdHlwZT1oZWFkcw&cdn=githack&lite=true" target="_blank">Tree broke Tree</a>
-                   </center>
-                    </table>
+                <div id="top-view" style="display: none; max-width: 70%; margin: 0 auto; text-align: center;">
+
+                    <i class="fa-solid fa-bars fa-2x" style="margin-bottom: 10px; display: inline-block;"></i>
+                    <h2>Pages served by RawServe</h2>
+
+                    <p>These are the pages served thanks to RawServe. (Don't use GitHub Pages or others!)</p>
+                    <p style="color: #666; font-size: 0.9em;">Just serving RAW files... Showing A-Z Available Pages</p>
+
+                    <div style="margin-top: 20px; text-align: left; display: inline-block; min-width: 200px;">
+                        <strong style="font-size: 1.1em; display: block; margin-bottom: 8px; border-bottom: 1px solid #ccc; padding-bottom: 4px;">T :</strong>
+                        <ul style="list-style-type: square; padding-left: 20px; margin: 0;">
+                            <li style="margin-bottom: 8px;">
+                                <a href="?serve=b64_aHR0cHM6Ly9naXRsYWIuY29tL0FuZHJlc0Rldjg1OTY3NC90cmVlLWJyb2tlLXRyZWUvLS9yYXcvbWFpbi9UcmVlX2Jyb2tlX1RyZWUuaHRtbD9yZWZfdHlwZT1oZWFkcw&cdn=githack&lite=true"
+                                   target="_blank"
+                                   style="color: #0066cc; text-decoration: none; font-weight: 500;">
+                                   Tree broke Tree
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
                 </div>
 
                 <div id="issues-view" style="display: none;">
