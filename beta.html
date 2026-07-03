@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RawServe - Web Importer</title>
+    <link class="rawserve-icon" rel="icon" href="icon16.png" sizes="16x16">
+    <link class="rawserve-icon" rel="icon" href="icon32.png" sizes="32x32">
+    <script>
+        (function() {
+            var match = window.location.search.match(/[?&]css=true\b/);
+            if (match) {
+                document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">');
+                document.write('<link href="https://unpkg.com/nes.icons@latest/css/nes-icons.min.css" rel="stylesheet" />');
+            }
+        })();
+    </script>
+    <style>
+        body.retro-active {
+            background-color: #0f0d0b !important;
+            color: #f5e6d3 !important;
+            font-family: monospace !important;
+            font-size: 13px !important;
+            background-image: linear-gradient(to right, rgba(255, 106, 26, 0.12) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 106, 26, 0.12) 1px, transparent 1px) !important;
+            background-size: 32px 32px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            min-height: 100vh !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        body.retro-active #app-ui {
+            display: grid !important;
+            grid-template-columns: 280px 1fr !important;
+            grid-template-rows: 1fr auto !important;
+            grid-template-areas:
+                "sidebar content"
+                "footer footer" !important;
+            min-height: 100vh !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            gap: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            background-color: transparent !important;
+        }
+
+        body.retro-active #sidebar-panel {
+            grid-area: sidebar !important;
+            border-right: 4px double #ff6a1a !important; 
+            background-color: rgba(23, 19, 15, 0.75) !important;
+            padding: 25px 15px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 30px !important;
+            box-sizing: border-box !important;
+        }
+
+        body.retro-active #content-panel {
+            grid-area: content !important;
+            padding: 35px !important;
+            background-color: rgba(12, 10, 8, 0.5) !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow-y: auto !important;
+        }
+
+        body.retro-active #nav-divider,
+        body.retro-active #style-divider,
+        body.retro-active #footer-divider {
+            display: none !important;
+        }
+
+        body.retro-active #sidebar-brand {
+            text-align: left !important;
+        }
+        body.retro-active #brand-title {
+            font-family: monospace !important;
+            color: #ffb37a !important;
+            font-size: 22px !important;
+            font-weight: bold !important;
+            margin: 0 0 5px 5px !important;
+            letter-spacing: 1px !important;
+            border-bottom: 2px dashed rgba(255,106,26,0.3) !important;
+            padding-bottom: 5px !important;
+            display: inline-block !important;
+            width: 100% !important;
+        }
+        body.retro-active #brand-tagline {
+            font-size: 11px !important;
+            color: #8c7a6b !important;
+            margin: 5px 0 0 0 !important;
+            line-height: 1.4 !important;
+            text-align: left !important;
+        }
+
+        body.retro-active #nav-container {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 12px !important;
+            margin-top: 10px !important;
+        }
+        body.retro-active #nav-container a {
+            display: block !important;
+            padding: 10px 14px !important;
+            color: #ff8c3a !important;
+            text-decoration: none !important;
+            border: 2px solid #ff6a1a !important;
+            border-right: none !important; 
+            background-color: #120e0a !important;
+            margin-right: -17px !important;
+            position: relative !important;
+            z-index: 5 !important;
+            font-weight: bold !important;
+            font-size: 12px !important;
+            letter-spacing: 1px !important;
+            box-shadow: -4px 4px 0 0 #4a1d00 !important;
+            transition: all 0.15s ease-on-out !important;
+        }
+
+        body.retro-active #nav-container a.active-tab {
+            background-color: #ff6a1a !important;
+            color: #000000 !important;
+            margin-right: -19px !important;
+            box-shadow: -5px 5px 0 0 #1c0a00 !important;
+            z-index: 10 !important;
+        }
+        body.retro-active #nav-container a:hover {
+            background-color: #ffb37a !important;
+            color: #000000 !important;
+            text-decoration: none !important;
+        }
+
+        body.retro-active #style-wrapper {
+            margin-top: auto !important;
+            padding-top: 20px !important;
+            border-top: 1px dashed rgba(255,106,26,0.3) !important;
+            text-align: left !important;
+        }
+        body.retro-active #style-container {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 6px !important;
+        }
+        body.retro-active #style-container label {
+            color: #ffb37a !important;
+            font-size: 11px !important;
+            font-weight: bold !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+        }
+        body.retro-active #style-select {
+            background-color: #000 !important;
+            color: #ff6a1a !important;
+            border: 1px solid #ff6a1a !important;
+            padding: 5px 8px !important;
+            font-family: monospace !important;
+            font-size: 12px !important;
+            outline: none !important;
+        }
+
+        body.retro-active .retro-view-wrapper {
+            border: 3px double #ff6a1a !important;
+            background-color: #130f0d !important;
+            padding: 30px !important;
+            box-shadow: 6px 6px 0 0 #000000 !important;
+            flex-grow: 1 !important;
+            box-sizing: border-box !important;
+        }
+
+        body.retro-active .retro-view-wrapper h2 {
+            font-family: monospace !important;
+            font-size: 18px !important;
+            color: #ffb37a !important;
+            border-bottom: 1px dashed rgba(255, 106, 26, 0.4) !important;
+            padding-bottom: 8px !important;
+            margin-top: 0 !important;
+            margin-bottom: 20px !important;
+            text-transform: uppercase !important;
+        }
+        body.retro-active .retro-view-wrapper h3 {
+            font-family: monospace !important;
+            font-size: 14px !important;
+            color: #ffb37a !important;
+            margin-top: 20px !important;
+            margin-bottom: 8px !important;
+        }
+        body.retro-active .retro-view-wrapper p {
+            color: #e9d5bd !important;
+            font-size: 13px !important;
+            line-height: 1.6 !important;
+        }
+
+        body.retro-active .retro-view-wrapper table {
+            color: #e9d5bd !important;
+            border: 1px solid rgba(255, 106, 26, 0.3) !important;
+            font-size: 13px !important;
+            width: 100% !important;
+        }
+        body.retro-active .retro-view-wrapper td,
+        body.retro-active .retro-view-wrapper th {
+            padding: 8px 12px !important;
+            border-top: 1px solid rgba(255, 106, 26, 0.15) !important;
+        }
+
+        body.retro-active .retro-view-wrapper input[type=text],
+        body.retro-active .retro-view-wrapper select {
+            background-color: #000000 !important;
+            color: #f5e6d3 !important;
+            border: 1px solid #ff6a1a !important;
+            font-family: monospace !important;
+            font-size: 13px !important;
+            padding: 5px 8px !important;
+            outline: none !important;
+        }
+        body.retro-active .retro-view-wrapper input[type=text]:focus {
+            box-shadow: 3px 3px 0 0 #ff6a1a !important;
+        }
+
+        body.retro-active .retro-view-wrapper button {
+            background-color: #ff6a1a !important;
+            color: #000000 !important;
+            border: 1px solid #ff6a1a !important;
+            font-weight: bold !important;
+            text-transform: uppercase !important;
+            font-size: 12px !important;
+            padding: 6px 16px !important;
+            cursor: pointer !important;
+            box-shadow: 3px 3px 0 0 #7a2e00 !important;
+        }
+        body.retro-active .retro-view-wrapper button:hover {
+            background-color: #ffb37a !important;
+        }
+        body.retro-active .retro-view-wrapper button:active {
+            transform: translate(2px, 2px) !important;
+            box-shadow: none !important;
+        }
+
+        body.retro-active .retro-view-wrapper input[type=file] {
+            background-color: #000000 !important;
+            color: #f5e6d3 !important;
+            border: 1px solid #ff6a1a !important;
+            font-family: monospace !important;
+            font-size: 13px !important;
+            padding: 3px 6px !important;
+        }
+        body.retro-active .retro-view-wrapper input[type=file]::file-selector-button {
+            background-color: #ff6a1a !important;
+            color: #000000 !important;
+            border: 1px solid #ff6a1a !important;
+            font-family: monospace !important;
+            font-size: 11px !important;
+            font-weight: bold !important;
+            text-transform: uppercase !important;
+            padding: 2px 8px !important;
+            margin-right: 12px !important;
+            cursor: pointer !important;
+            box-shadow: 2px 2px 0 0 #7a2e00 !important;
+        }
+        body.retro-active .retro-view-wrapper input[type=file]::file-selector-button:hover {
+            background-color: #ffb37a !important;
+        }
+        body.retro-active .retro-view-wrapper input[type=file]::-webkit-file-upload-button {
+            background-color: #ff6a1a !important;
+            color: #000000 !important;
+            border: 1px solid #ff6a1a !important;
+            font-family: monospace !important;
+            font-size: 11px !important;
+            font-weight: bold !important;
+            text-transform: uppercase !important;
+            padding: 2px 8px !important;
+            margin-right: 12px !important;
+            cursor: pointer !important;
+            box-shadow: 2px 2px 0 0 #7a2e00 !important;
+        }
+        body.retro-active .retro-view-wrapper input[type=file]::-webkit-file-upload-button:hover {
+            background-color: #ffb37a !important;
+        }
+
+        body.retro-active #console {
+            background-color: #000000 !important;
+            color: #ffb347 !important;
+            border: 1px solid #ff6a1a !important;
+            font-family: monospace !important;
+            font-size: 12px !important;
+            padding: 10px !important;
+            box-shadow: 4px 4px 0 0 #ff6a1a !important;
+            margin-top: 15px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+        body.retro-active #footer-panel {
+            grid-area: footer !important;
+            background-color: #120e0a !important;
+            border-top: 4px double #ff6a1a !important;
+            padding: 8px 20px !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            font-size: 11px !important;
+            color: #ffb37a !important;
+            font-family: monospace !important;
+            letter-spacing: 1px !important;
+            box-sizing: border-box !important;
+        }
+        #footer-meta-left, #footer-meta-right {
+            display: none;
+        }
+        body.retro-active #footer-meta-left,
+        body.retro-active #footer-meta-right {
+            display: inline-block !important;
+        }
+
+        body.lite-active #app-ui {
+            display: none !important;
+        }
+
+        #lite-error {
+            background-color: #fff3f3;
+            color: #ff0000;
+            border: 1px solid #ff0000;
+            padding: 15px;
+            margin: 40px auto;
+            max-width: 600px;
+            text-align: center;
+            font-family: sans-serif;
+            font-size: 14px;
+        }
+
+        body.retro-active #lite-error {
+            background-color: #1a0a05 !important;
+            color: #ff4a4a !important;
+            border: 2px solid #ff4a4a !important;
+            padding: 20px !important;
+            font-family: monospace !important;
+            font-size: 13px !important;
+            max-width: 650px !important;
+            margin: 60px auto !important;
+            box-shadow: 6px 6px 0 0 #ff4a4a !important;
+            text-align: center !important;
+            line-height: 1.6 !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="app-ui">
+        <div id="sidebar-panel">
+            <div id="sidebar-brand">
+                <h1 id="brand-title">RawServe</h1>
+                <p id="brand-tagline">Serve any raw HTML file directly in your browser without hosting.</p>
+            </div>
+            
+            <div id="nav-container">
+                <a href="?page=index" id="nav-index"><b>[ Index ]</b></a>
+                <a href="?page=serve" id="nav-serve"><b>[ Serve ]</b></a>
+                <a href="?page=usage" id="nav-usage"><b>[ Usage ]</b></a>
+                <a href="?page=issues" id="nav-issues"><b>[ Known Issues ]</b></a>
+            </div>
+            <hr id="nav-divider">
+
+            <div id="style-wrapper">
+                <div id="style-container">
+                    <label for="style-select">Style:</label>
+                    <select id="style-select">
+                        <option value="original">Original</option>
+                        <option value="css">CSS (Bootstrap)</option>
+                    </select>
+                </div>
+                <hr id="style-divider">
+            </div>
+        </div>
+
+        <div id="content-panel">
+            <div class="retro-view-wrapper">
+                <div id="index-view">
+                    <center>
+                        <img id="banner-img" data-src="banner.jpg" alt="Banner" border="1">
+                        <h2>Welcome to RawServe</h2>
+                        <table id="welcome-table" border="0" cellpadding="8" width="60%">
+                            <tr>
+                                <td>
+                                    <p>RawServe is a lightweight, zero-hosting web importer designed to fetch and render raw HTML pages directly inside your browser. By resolving dependency paths natively on-the-fly, you can instantly test and display your files without deployment pipelines or CORS headaches.</p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table border="0" cellpadding="8" width="60%">
+                        <tbody>
+                            <tr>
+                                <td colspan="2">
+                                    <center><h2>Links</h2>
+                                    <i class="nes-icon github is-large"></i> <a href="https://github.com/AndresDev859674/rawserve" target="_blank">GitHub Repository</a>,
+                                    <i class="nes-icon eye"></i> <a href="https://raw.githubusercontent.com/AndresDev859674/RawServe/refs/heads/main/index.html" target="_blank">RAW index.html</a>
+                                    </center>
+                                </td>
+                            </tr>
+                        </tbody>
+                        </table>
+
+                        <div id="features-box" style="text-align: left; max-width: 550px; margin: 20px auto;">
+                            <h4>Our Main Features is :</h4>
+                            <ul>
+                                <li>It's Fast</li>
+                                <li>Simple UI, No Bullshit, Just Works. (And retro)</li>
+                                <li>100% Free and Open Source</li>
+                                <li>Absolute Privacy, They are actually URLs that provide a view of RAW html and nothing else</li>
+                            </ul>
+
+                            <h4>And Can do :</h4>
+                            <ul>
+                                <li>Directly serve raw HTML files from GitHub, GitLab, or any public URL.</li>
+                                <li>Automatically resolve relative paths for assets like CSS, JS, and images.</li>
+                                <li>Support for local HTML file uploads for instant rendering.</li>
+                                <li>Choose between different CDN providers for optimized delivery.</li>
+                                <li>Advanced diagnostics console for troubleshooting and debugging.</li>
+                            </ul>
+                        </div>
+                    </center>
+                </div>
+
+                <!-- -->
+                <div id="serve-view" style="display: none;">
+                    <table id="serve-form-table" align="center" border="0" cellpadding="5">
+                        <tr>
+                            <td><label for="url">Target HTML URL:</label></td>
+                            <td>
+                                <input type="text" id="url" size="60" placeholder="https://raw.githubusercontent.com/.../index.html">
+                            </td>
+                            <td>
+                                <button id="btn">Serve File</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label for="cdn">CDN Provider:</label></td>
+                            <td>
+                                <select id="cdn">
+                                    <option value="githack">GitHack (raw.githack.com)</option>
+                                    <option value="jsdelivr">jsDelivr (cdn.jsdelivr.net) [Unstable/Maintenance]</option>
+                                </select>
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td><label for="file">Local HTML File:</label></td>
+                            <td>
+                                <input type="file" id="file" accept=".html,.htm">
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td><label for="toggleCompress">Compress URL:</label></td>
+                            <td>
+                                <input type="checkbox" id="toggleCompress"> Compress parameter string (Base64 URL-Safe)
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td><label for="toggleLite">Lite Mode:</label></td>
+                            <td>
+                                <input type="checkbox" id="toggleLite"> Enable Lite Mode (No UI, fetch content directly)
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td><label for="toggleNav">Control Panel:</label></td>
+                            <td>
+                                <input type="checkbox" id="toggleNav"> Show RawServe Top Banner (Can broke Pages!)
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td><label for="toggleConsole">Diagnostics:</label></td>
+                            <td>
+                                <input type="checkbox" id="toggleConsole"> Show Advanced Console Logs
+                            </td>
+                            <td></td>
+                        </tr>
+                    </table>
+
+                    <center>
+                        <p id="status"></p>
+                        <textarea id="console" rows="12" cols="85" readonly hidden></textarea>
+                    </center>
+                </div>
+
+                <div id="usage-view" style="display: none;">
+                    <center>
+                        <h2>How to Use RawServe</h2>
+                        <table id="usage-table" border="0" cellpadding="8" width="70%">
+                            <tr>
+                                <td>
+                                    <h3>1. Serving Remote Files</h3>
+                                    <p>Copy any raw HTML URL (e.g., from a GitHub repository or GitLab snippets) and paste it into the <b>Target HTML URL</b> field in the <i>Serve</i> tab. Click <b>Serve File</b> to render it instantly.</p>
+                                    
+                                    <h3>2. Using Different CDNs</h3>
+                                    <p>GitHub Raw URLs enforce a strict plain text MIME type restriction. Under the hood, RawServe bypasses this using CDN proxies:</p>
+                                    <ul>
+                                        <li><b>GitHack (Recommended):</b> Directly routes requests and maps correct MIME headers so CSS and JS execute instantly.</li>
+                                        <li><b>jsDelivr:</b> An alternative CDN for public repository asset distribution.</li>
+                                    </ul>
+
+                                    <h3>3. Offline Local Sandbox</h3>
+                                    <p>To safely test and execute local code without setting up a localhost environment, click on <b>Choose File</b> / <b>Browse</b> under <i>Local HTML File</i>. The browser will parse and run the code completely offline.</p>
+
+                                    <h3>4. Lite Mode & Embeds</h3>
+                                    <p>Check the <b>Enable Lite Mode</b> option before submitting a URL. This will hide RawServe's user interface entirely and load the page in absolute full screen. This is perfect for generating permanent direct links or embeds.</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </center>
+                </div>
+
+                <div id="issues-view" style="display: none;">
+                    <center>
+                        <h2>Known Issues & Limitations</h2>
+                        <table id="issues-table" border="0" cellpadding="8" width="70%">
+                            <tr>
+                                <td>
+                                    <h3>1. Root-Relative Asset URLs</h3>
+                                    <p>If the source HTML file references assets using absolute root paths (e.g., <code>/style.css</code> or <code>/js/app.js</code> instead of relative <code>style.css</code> or <code>./style.css</code>), they will resolve to RawServe's host domain instead of the source repository, causing a 404 error.</p>
+
+                                    <h3>2. Local CORS Restriction (file:///)</h3>
+                                    <p>Modern browsers block JavaScript <code>fetch()</code> requests to local <code>file:///</code> paths due to strict Same-Origin security policies. RawServe cannot fetch local files using standard input URLs. Use the <b>Local HTML File</b> selector to upload and read local files.</p>
+
+                                    <h3>3. JavaScript SPA Routers</h3>
+                                    <p>Single Page Applications built with complex dynamic routing (such as React Router or Vue Router utilizing HTML5 History API) may break upon manual refresh or routing, as RawServe does not configure custom dynamic server fallbacks.</p>
+
+                                    <h3>4. Third-Party CORS Blockers</h3>
+                                    <p>External APIs and fonts that do not permit cross-origin requests (CORS) might still refuse to load when imported outside of their white-listed domains.</p>
+
+                                    <h3>5. SharedArrayBuffer & Cross-Origin Isolation (Godot 4/Wasm)</h3>
+                                    <p>Modern game engines (like Godot 4 Web builds) rely on WebAssembly multithreading and require <code>SharedArrayBuffer</code>. Browsers strictly block these APIs unless the document is served with <b>Cross-Origin Isolation</b> headers (COOP and COEP). Since RawServe runs entirely on the client-side (and often loaded locally over <code>file:///</code> or proxy CDNs), it cannot force these security headers natively. To load multithreaded games, you must host RawServe on a local or cloud web server (like Vercel or local Python server) configured to return COOP/COEP headers, or export your Godot project using the <i>single-threaded</i> template fallback.</p>
+
+                                    <h3>6. Modern JS/TS Frameworks (Svelte, Next.js, Nuxt, etc.)</h3>
+                                    <p>RawServe handles static client-side HTML, CSS, and JS. Modern development frameworks like Next.js, Nuxt, SvelteKit, or Remix rely on complex bundlers (like Vite, Webpack, or Turbopack) and Node.js server-side environments (SSR/Serverless functions). Directly serving raw uncompiled source code from these frameworks will not work because the browser cannot compile raw JSX, Svelte templates, or TypeScript on-the-fly. To run projects built with these frameworks via RawServe, you must first compile them locally or in CI, and serve their fully bundled static production export (usually located inside the exported <code>dist</code> or <code>out</code> directories).</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </center>
+                </div>
+            </div>
+        </div>
+
+        <div id="footer-panel">
+            <hr id="footer-divider">
+            <span id="footer-meta-left">[ STATUS: OPERATIONAL ] [ MEM: 640KB OK ]</span>
+            <center id="footer-center-meta">
+                <small id="footer-text">We dont need pay for hosting!</small>
+            </center>
+            <span id="footer-meta-right"><span id="footer-time">[ TIME: 00:00:00 ]</span></span>
+        </div>
+    </div>
+
+    <div id="lite-error" style="display: none;"></div>
+
+    <!-- -->
+    <script>
+        var urlInput = document.getElementById('url');
+        var fileInput = document.getElementById('file');
+        var cdnSelect = document.getElementById('cdn');
+        var styleSelect = document.getElementById('style-select');
+        var serveBtn = document.getElementById('btn');
+        var statusText = document.getElementById('status');
+        var toggleConsole = document.getElementById('toggleConsole');
+        var toggleLite = document.getElementById('toggleLite');
+        var toggleNav = document.getElementById('toggleNav');
+        var toggleCompress = document.getElementById('toggleCompress');
+        var consoleBox = document.getElementById('console');
+        var indexView = document.getElementById('index-view');
+        var serveView = document.getElementById('serve-view');
+        var usageView = document.getElementById('usage-view');
+        var issuesView = document.getElementById('issues-view');
+        var appUi = document.getElementById('app-ui');
+        var liteError = document.getElementById('lite-error');
+
+        function each(array, callback) {
+            for (var i = 0; i < array.length; i++) {
+                callback(array[i], i);
+            }
+        }
+
+        function getQueryParam(param) {
+            var search = window.location.search;
+            var regex = new RegExp('[?&]' + param + '=([^&#]*)');
+            var results = regex.exec(search);
+            return results ? decodeURIComponent(results[1].replace(/\+/g, ' ')) : null;
+        }
+
+        function base64ToUrlSafe(str) {
+            return str.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+
+        function urlSafeToBase64(str) {
+            var base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+            while (base64.length % 4) {
+                base64 += '=';
+            }
+            return base64;
+        }
+
+        function encodeUrlParam(url) {
+            try {
+                return 'b64_' + base64ToUrlSafe(btoa(url));
+            } catch (e) {
+                return url;
+            }
+        }
+
+        function decodeUrlParam(paramVal) {
+            if (paramVal && paramVal.indexOf('b64_') === 0) {
+                try {
+                    return atob(urlSafeToBase64(paramVal.substring(4)));
+                } catch (e) {
+                    return paramVal;
+                }
+            }
+            return paramVal;
+        }
+
+        function log(message) {
+            var time = new Date().toLocaleTimeString();
+            consoleBox.value += "[" + time + "] " + message + "\n";
+            consoleBox.scrollTop = consoleBox.scrollHeight;
+        }
+
+        function getCompatibleUrl(url) {
+            log("Processing URL compatibility: " + url);
+            
+            if (url.indexOf('github.com') !== -1 && url.indexOf('raw.githubusercontent.com') === -1 && url.indexOf('cdn.jsdelivr.net') === -1 && url.indexOf('githack.com') === -1) {
+                log("Standard GitHub URL detected. Translating to raw format.");
+                url = url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
+            }
+
+            if (url.indexOf('gitlab.com') !== -1 && url.indexOf('gl.githack.com') === -1) {
+                var updated = url.replace('gitlab.com', 'gl.githack.com');
+                log("GitLab source detected. Routing through gl.githack.com: " + updated);
+                return updated;
+            }
+            if (url.indexOf('raw.githubusercontent.com') === -1) {
+                log("Non-GitHub source detected. No proxy translation needed.");
+                return url;
+            }
+            var provider = cdnSelect.value;
+            log("GitHub source detected. Target provider: " + provider);
+            if (provider === 'jsdelivr') {
+                var clean = url.replace('https://raw.githubusercontent.com/', '');
+                var parts = clean.split('/');
+                if (parts.length < 3) {
+                    log("Aborting jsDelivr parsing due to invalid path structure.");
+                    return url;
+                }
+                var user = parts[0];
+                var repo = parts[1];
+                var ref = '';
+                var path = '';
+                if (parts[2] === 'refs' && parts[3] === 'heads' && parts.length > 4) {
+                    ref = 'refs/heads/' + parts[4];
+                    path = parts.slice(5).join('/');
+                } else {
+                    ref = parts[2];
+                    path = parts.slice(3).join('/');
+                }
+                var updatedJsDelivr = 'https://cdn.jsdelivr.net/gh/' + user + '/' + repo + '@' + ref + '/' + path;
+                log("Constructed jsDelivr URL: " + updatedJsDelivr);
+                return updatedJsDelivr;
+            } else {
+                var updatedGithack = url.replace('raw.githubusercontent.com', 'raw.githack.com');
+                log("Constructed GitHack URL: " + updatedGithack);
+                return updatedGithack;
+            }
+        }
+
+        function filterCloudflareScripts(html) {
+            log("Filtering potential Cloudflare analytical beacons and tracking scripts...");
+            var cleanHtml = html.replace(/<script[^>]*static\.cloudflareinsights\.com\/beacon\.min\.js[^>]*><\/script>/gi, '');
+            cleanHtml = cleanHtml.replace(/<script[^>]*data-cfasync=["']true["'][^>]*>([\s\S]*?)<\/script>/gi, '');
+            return cleanHtml;
+        }
+
+        function renderHTML(html, baseUri, targetUrl) {
+            log("Initializing HTML rendering context...");
+            
+            html = filterCloudflareScripts(html);
+
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(html, 'text/html');
+
+            if (baseUri) {
+                var resolvedBase = getCompatibleUrl(baseUri);
+                log("Injecting <base> tag to document root. Target URI: " + resolvedBase);
+                var baseTag = doc.createElement('base');
+                baseTag.href = resolvedBase;
+                if (doc.head) {
+                    doc.head.insertBefore(baseTag, doc.head.firstChild);
+                } else {
+                    var head = doc.createElement('head');
+                    head.appendChild(baseTag);
+                    doc.documentElement.insertBefore(head, doc.documentElement.firstChild);
+                }
+            }
+
+            log("Analyzing asset icon declarations inside document...");
+            var icons = doc.querySelectorAll('link[rel*="icon"]');
+            each(icons, function(icon) {
+                var href = icon.getAttribute('href');
+                if (href && href.indexOf('http://') !== 0 && href.indexOf('https://') !== 0 && href.indexOf('data:') !== 0) {
+                    try {
+                        var resolvedIcon = new URL(href, baseUri).href;
+                        icon.href = resolvedIcon;
+                        log("Resolved relative icon asset to absolute URL: " + href + " -> " + resolvedIcon);
+                    } catch (e) {
+                        log("Failed to resolve icon reference: " + href);
+                    }
+                }
+            });
+
+            var showNav = getQueryParam('nav') === 'true';
+            if (showNav && doc.body) {
+                log("Injecting top navigation control banner...");
+                var isCss = getQueryParam('css') === 'true';
+                var cssParam = isCss ? '&css=true' : '';
+                var returnUrl = window.location.origin + window.location.pathname + '?page=serve' + cssParam;
+                var bannerScript = doc.createElement('script');
+                bannerScript.textContent = `
+                    (function() {
+                        const targetUrl = decodeURIComponent("${encodeURIComponent(targetUrl)}");
+                        const returnUrl = decodeURIComponent("${encodeURIComponent(returnUrl)}");
+                        const container = document.createElement('div');
+                        container.id = 'rawserve-banner-container';
+                        container.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; z-index: 2147483647 !important; height: 0 !important; overflow: visible !important;';
+                        
+                        let shadow;
+                        if (container.attachShadow) {
+                            shadow = container.attachShadow({mode: 'open'});
+                        } else {
+                            shadow = container;
+                        }
+                        
+                        const style = document.createElement('style');
+                        style.textContent = '.banner-table { width: 100% !important; background-color: #e0e0e0 !important; border: 1px solid #777 !important; border-collapse: collapse !important; margin: 0 !important; padding: 0 !important; font-family: monospace !important; color: #000000 !important; height: 35px !important; } .banner-table td { border: 1px solid #777 !important; padding: 5px !important; vertical-align: middle !important; } .banner-text { font-family: monospace !important; font-size: 12px !important; color: #000000 !important; text-decoration: none !important; } .banner-link { font-family: monospace !important; font-size: 12px !important; color: #0000ee !important; text-decoration: underline !important; font-weight: bold !important; } .banner-btn { cursor: pointer !important; font-family: monospace !important; font-size: 11px !important; background: #d0d0d0 !important; color: #000000 !important; border: 1px solid #777 !important; padding: 1px 4px !important; margin-right: 5px !important; } .show-btn { position: fixed !important; top: 5px !important; right: 5px !important; z-index: 2147483647 !important; cursor: pointer !important; font-family: monospace !important; font-size: 11px !important; background: #e0e0e0 !important; color: #000000 !important; border: 1px solid #000 !important; padding: 2px 5px !important; box-shadow: 0px 1px 3px rgba(0,0,0,0.5) !important; }';
+                        shadow.appendChild(style);
+                        
+                        const table = document.createElement('table');
+                        table.className = 'banner-table';
+                        
+                        const row = document.createElement('tr');
+                        
+                        const cell1 = document.createElement('td');
+                        cell1.setAttribute('width', '20%');
+                        cell1.innerHTML = '<span class="banner-text"><b>[ RawServe ]</b></span>';
+                        row.appendChild(cell1);
+                        
+                        const cell2 = document.createElement('td');
+                        cell2.setAttribute('align', 'center');
+                        cell2.innerHTML = '<span class="banner-text">Currently serving: <u>' + targetUrl + '</u></span>';
+                        row.appendChild(cell2);
+                        
+                        const cell3 = document.createElement('td');
+                        cell3.setAttribute('width', '25%');
+                        cell3.setAttribute('align', 'right');
+                        
+                        const hideBtn = document.createElement('button');
+                        hideBtn.className = 'banner-btn';
+                        hideBtn.textContent = '[ Hide ]';
+                        cell3.appendChild(hideBtn);
+                        
+                        const exitLink = document.createElement('a');
+                        exitLink.className = 'banner-link';
+                        exitLink.setAttribute('href', returnUrl);
+                        exitLink.innerHTML = '<b>[ EXIT NAV ]</b>';
+                        cell3.appendChild(exitLink);
+                        
+                        row.appendChild(cell3);
+                        table.appendChild(row);
+                        shadow.appendChild(table);
+                        
+                        const showBtn = document.createElement('button');
+                        showBtn.className = 'show-btn';
+                        showBtn.style.display = 'none';
+                        showBtn.textContent = '[ Show RawServe Nav ]';
+                        shadow.appendChild(showBtn);
+                        
+                        hideBtn.addEventListener('click', function() {
+                            table.style.display = 'none';
+                            showBtn.style.display = 'block';
+                            document.body.style.paddingTop = '0px';
+                        });
+                        
+                        showBtn.addEventListener('click', function() {
+                            table.style.display = 'table';
+                            showBtn.style.display = 'none';
+                            document.body.style.paddingTop = '45px';
+                        });
+                        
+                        document.body.insertBefore(container, document.body.firstChild);
+                        document.body.style.paddingTop = "45px";
+                    })();
+                `;
+                doc.body.appendChild(bannerScript);
+            }
+
+            log("Rewriting document DOM stream...");
+            document.open();
+            document.write('<!DOCTYPE html>' + doc.documentElement.outerHTML);
+            document.close();
+            log("Rendering operations completed.");
+        }
+
+        function renderBinaryViewer(url, type) {
+            log("Configuring static viewer for file of type: " + type);
+            var isCss = getQueryParam('css') === 'true';
+            var cssParam = isCss ? '&css=true' : '';
+            var returnUrl = window.location.origin + window.location.pathname + '?page=serve' + cssParam;
+            
+            var html = '';
+            html += '<!DOCTYPE html><html><head><title>RawServe Preview - ' + type + '</title>';
+            
+            if (isCss) {
+                html += '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">';
+                html += '<style>' +
+                    'body { background-color: #0f0d0b !important; color: #f5e6d3 !important; font-family: monospace !important; padding-top: 50px; }' +
+                    '.viewer-box { background: #17130f; border: 1px solid #ff6a1a; padding: 20px; box-shadow: 6px 6px 0 0 #ff6a1a; margin-top: 30px; text-align: center; }' +
+                    '.btn-retro { background-color: #ff6a1a !important; color: #000000 !important; border: 1px solid #ff6a1a !important; font-weight: bold !important; text-transform: uppercase !important; box-shadow: 3px 3px 0 0 #7a2e00 !important; }' +
+                    '.btn-retro:hover { background-color: #ffb37a !important; color: #000 !important; text-decoration: none; }' +
+                    '.checkerboard { background-image: linear-gradient(45deg, #1f1a14 25%, transparent 25%), linear-gradient(-45deg, #1f1a14 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1f1a14 75%), linear-gradient(-45deg, transparent 75%, #1f1a14 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; }' +
+                    '</style>';
+            } else {
+                html += '<style>' +
+                    'body { background-color: #fff; color: #000; font-family: sans-serif; padding-top: 50px; text-align: center; }' +
+                    '.viewer-box { border: 1px solid #ccc; padding: 20px; display: inline-block; margin-top: 30px; }' +
+                    '.checkerboard { background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; }' +
+                    '</style>';
+            }
+            html += '</head><body>';
+            
+            html += '<div style="position: fixed; top: 0; left: 0; width: 100%; background: #333; color: #fff; padding: 10px; text-align: left; font-family: monospace; z-index: 9999;">';
+            html += '<b>[ RawServe ]</b> Currently serving static media: <a href="' + returnUrl + '" style="color: #ff6a1a; font-weight: bold; text-decoration: underline;">[ RETURN ]</a>';
+            html += '</div>';
+
+            html += '<div class="container"><div class="viewer-box">';
+            html += '<h3>Static Resource Preview</h3>';
+            html += '<p style="font-size:12px;">URL: ' + url + '</p><hr style="border-color: #ff6a1a;">';
+
+            if (type === 'image') {
+                html += '<div class="checkerboard" style="padding: 20px; display: inline-block; border: 1px solid #ff6a1a;"><img src="' + url + '" style="max-width: 100%; max-height: 70vh; display: block;" onerror="this.style.display=\'none\'; alert(\'Could not render this asset directy.\')"></div>';
+            } else if (type === 'video') {
+                html += '<video src="' + url + '" controls style="max-width: 100%; max-height: 70vh;"></video>';
+            } else if (type === 'audio') {
+                html += '<audio src="' + url + '" controls style="width: 100%; max-width: 500px;"></audio>';
+            } else if (type === 'pdf') {
+                html += '<iframe src="' + url + '" style="width: 100%; height: 75vh; border: none;"></iframe>';
+            }
+
+            html += '<div style="margin-top:20px;"><a class="btn btn-retro" href="' + returnUrl + '">Exit Preview</a></div>';
+            html += '</div></div></body></html>';
+
+            document.open();
+            document.write(html);
+            document.close();
+        }
+
+        function isStaticMediaExtension(url) {
+            var cleanUrl = url.split('?')[0].split('#')[0].toLowerCase();
+            if (cleanUrl.match(/\.(png|jpe?g|gif|svg|webp|bmp|ico)$/i)) return 'image';
+            if (cleanUrl.match(/\.(mp4|webm|ogv|avi|mov)$/i)) return 'video';
+            if (cleanUrl.match(/\.(mp3|wav|ogg|aac|flac)$/i)) return 'audio';
+            if (cleanUrl.match(/\.pdf$/i)) return 'pdf';
+            return null;
+        }
+
+        /* */
+        function loadHTML(url) {
+            if (!url) return;
+
+            var isLite = getQueryParam('lite') === 'true';
+            if (isLite) {
+                document.title = "Fetching Resource...";
+            }
+
+            log("Load request initiated for: " + url);
+
+            if (url.indexOf('file:///') === 0) {
+                log("Validation halted: Attempted to fetch a local file:/// scheme directly.");
+                if (isLite) {
+                    document.title = "Security Error";
+                    liteError.innerHTML = "<b>Security Error:</b> Browser policies block fetching local file:// paths directly.";
+                    liteError.style.display = "block";
+                } else {
+                    statusText.innerHTML = "<font color='red'><b>Security Error:</b> Browser policies block fetching local file:// paths directly.<br>Please select your file using the <b>'Local HTML File'</b> button below instead!</font>";
+                }
+                return;
+            }
+
+            var staticType = isStaticMediaExtension(url);
+            if (staticType) {
+                log("Static extension bypass matched: " + staticType + ". Skipping text parsing.");
+                renderBinaryViewer(url, staticType);
+                return;
+            }
+
+            statusText.innerText = "Fetching resource...";
+
+            var fetchUrl = getCompatibleUrl(url);
+            if (fetchUrl.indexOf('cdn.jsdelivr.net') !== -1 && (fetchUrl.indexOf('.html') !== -1 || fetchUrl.indexOf('.htm') !== -1)) {
+                log("jsDelivr detected on a raw HTML file. Redirecting initial fetch target to GitHack to bypass MIME execution restrictions.");
+                fetchUrl = url.replace('raw.githubusercontent.com', 'raw.githack.com');
+            }
+
+            log("Fetching active resource from URL via XHR: " + fetchUrl);
+            
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', fetchUrl, true);
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 2) {
+                    var contentType = xhr.getResponseHeader("Content-Type");
+                    if (contentType) {
+                        contentType = contentType.toLowerCase();
+                        log("Content-Type detected: " + contentType);
+                        var detectedType = null;
+                        if (contentType.indexOf("image/") !== -1) detectedType = "image";
+                        else if (contentType.indexOf("video/") !== -1) detectedType = "video";
+                        else if (contentType.indexOf("audio/") !== -1) detectedType = "audio";
+                        else if (contentType.indexOf("application/pdf") !== -1) detectedType = "pdf";
+
+                        if (detectedType) {
+                            log("Dynamic content type match: " + detectedType + ". Aborting fetch to load media viewer.");
+                            xhr.abort();
+                            renderBinaryViewer(url, detectedType);
+                        }
+                    }
+                }
+                if (xhr.readyState === 4) {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        statusText.innerText = "Rendering content...";
+                        var baseUri = url.substring(0, url.lastIndexOf('/') + 1);
+                        log("Computing base directory path: " + baseUri);
+                        renderHTML(xhr.responseText, baseUri, url);
+                    } else if (xhr.status !== 0) {
+                        log("An error occurred during transaction processing, status code: " + xhr.status);
+                        var errorMsg = "Could not fetch the resource. Check browser console or CORS permissions.";
+                        if (isLite) {
+                            document.title = "Error";
+                            liteError.innerHTML = "<b>Error:</b> " + errorMsg + "<br><br><small style='color: #ff8c8c; font-size: 11px;'>Code: " + xhr.status + "</small>";
+                            liteError.style.display = "block";
+                        } else {
+                            statusText.innerText = "Error: " + errorMsg;
+                        }
+                    }
+                }
+            };
+
+            xhr.onerror = function() {
+                log("A transaction protocol error has occurred.");
+                var errorMsg = "Could not fetch the resource. Check browser console or CORS permissions.";
+                if (isLite) {
+                    document.title = "Error";
+                    liteError.innerHTML = "<b>Error:</b> " + errorMsg + "<br><br><small style='color: #ff8c8c; font-size: 11px;'>Please check network connectivity or Cross-Origin Policy.</small>";
+                    liteError.style.display = "block";
+                } else {
+                    statusText.innerText = "Error: " + errorMsg;
+                }
+            };
+
+            xhr.send();
+        }
+
+        serveBtn.addEventListener('click', function() {
+            var url = urlInput.value.trim();
+            var cdn = cdnSelect.value;
+            var isLiteChecked = toggleLite.checked;
+            var isNavChecked = toggleNav.checked;
+            var isCompressChecked = toggleCompress.checked;
+            var isCss = getQueryParam('css') === 'true';
+            
+            if (url) {
+                log("User manually initiated serve pipeline.");
+                
+                var targetUrlParam = url;
+                if (isCompressChecked) {
+                    targetUrlParam = encodeUrlParam(url);
+                }
+
+                var queryParams = '?serve=' + encodeURIComponent(targetUrlParam) + '&cdn=' + encodeURIComponent(cdn);
+                if (isLiteChecked) {
+                    queryParams += '&lite=true';
+                }
+                if (isNavChecked) {
+                    queryParams += '&nav=true';
+                }
+                if (isCss) {
+                    queryParams += '&css=true';
+                }
+                window.history.pushState({}, '', queryParams);
+                loadHTML(url);
+            }
+        });
+
+        fileInput.addEventListener('change', function(e) {
+            var file = e.target.files[0];
+            if (!file) return;
+            log("Local file chosen: " + file.name + " (" + file.size + " bytes)");
+            statusText.innerText = "Reading local file...";
+            var reader = new FileReader();
+            reader.onload = function(evt) {
+                log("Local file read successful. Loading content into renderer.");
+                renderHTML(evt.target.result, "", file.name);
+            };
+            reader.readAsText(file);
+        });
+
+        toggleConsole.addEventListener('change', function() {
+            consoleBox.hidden = !this.checked;
+            log("Diagnostics toggle status changed. Console visibility: " + this.checked);
+        });
+
+        styleSelect.addEventListener('change', function() {
+            var val = styleSelect.value;
+            var search = window.location.search;
+            var params = new URLSearchParams(search);
+            if (val === 'css') {
+                params.set('css', 'true');
+            } else {
+                params.delete('css');
+            }
+            window.location.search = params.toString();
+        });
+
+        function updateFooterTime() {
+            var timeEl = document.getElementById('footer-time');
+            if (timeEl) {
+                var now = new Date();
+                var hours = String(now.getHours());
+                var minutes = String(now.getMinutes());
+                var seconds = String(now.getSeconds());
+                
+                if (hours.length < 2) hours = '0' + hours;
+                if (minutes.length < 2) minutes = '0' + minutes;
+                if (seconds.length < 2) seconds = '0' + seconds;
+                
+                timeEl.innerText = '[ TIME: ' + hours + ':' + minutes + ':' + seconds + ' ]';
+            }
+        }
+
+        function updateActiveTab(pageId) {
+            var links = document.querySelectorAll('#nav-container a');
+            each(links, function(link) {
+                link.className = link.className.replace(/\bactive-tab\b/g, '').trim();
+            });
+            var activeLink = document.getElementById('nav-' + pageId);
+            if (activeLink) {
+                activeLink.className = (activeLink.className + ' active-tab').trim();
+            }
+        }
+
+        window.addEventListener('load', function() {
+            consoleBox.hidden = !toggleConsole.checked;
+            log("RawServe instance loaded. Checking parameters.");
+            
+            var isIsolated = window.crossOriginIsolated;
+            log("Cross-Origin Isolation status: " + (isIsolated ? "ENABLED" : "DISABLED (Multithreaded WebAssembly/SharedArrayBuffer will fail)"));
+
+            updateFooterTime();
+            setInterval(updateFooterTime, 1000);
+
+            var isCss = getQueryParam('css') === 'true';
+            if (isCss) {
+                log("Applying Retro Sidebar UI layout overlay dynamically.");
+                styleSelect.value = 'css';
+                
+                document.body.className = "retro-active";
+
+                var allLinks = document.querySelectorAll('a');
+                each(allLinks, function(a) {
+                    var href = a.getAttribute('href');
+                    if (href && href.indexOf('?') === 0 && href.indexOf('css=true') === -1) {
+                        var separator = href.indexOf('?') !== -1 ? '&' : '?';
+                        a.setAttribute('href', href + separator + 'css=true');
+                    }
+                });
+
+            } else {
+                document.body.className = "";
+                styleSelect.value = 'original';
+            }
+
+            var isLite = getQueryParam('lite') === 'true';
+            toggleLite.checked = isLite;
+
+            var isNav = getQueryParam('nav') === 'true';
+            toggleNav.checked = isNav;
+
+            if (isLite) {
+                document.body.className = (document.body.className + " lite-active").trim();
+                if (appUi) {
+                    appUi.style.setProperty('display', 'none', 'important');
+                }
+                var icon = document.querySelector('.rawserve-icon');
+                if (icon) icon.parentNode.removeChild(icon);
+            } else {
+                var bannerImg = document.getElementById('banner-img');
+                if (bannerImg && bannerImg.getAttribute('data-src')) {
+                    bannerImg.src = bannerImg.getAttribute('data-src');
+                }
+
+                var page = getQueryParam('page') || 'index';
+                indexView.style.display = 'none';
+                serveView.style.display = 'none';
+                usageView.style.display = 'none';
+                issuesView.style.display = 'none';
+
+                if (page === 'serve') {
+                    serveView.style.display = 'block';
+                } else if (page === 'usage') {
+                    usageView.style.display = 'block';
+                } else if (page === 'issues') {
+                    issuesView.style.display = 'block';
+                } else {
+                    indexView.style.display = 'block';
+                }
+
+                updateActiveTab(page);
+            }
+
+            var initialUrlRaw = getQueryParam('serve');
+            var initialUrl = decodeUrlParam(initialUrlRaw);
+            
+            if (initialUrlRaw && initialUrlRaw.indexOf('b64_') === 0) {
+                toggleCompress.checked = true;
+                log("Encoded URL detected. Successfully decoded payload: " + initialUrl);
+            }
+
+            var initialCdn = getQueryParam('cdn');
+            if (initialCdn) {
+                cdnSelect.value = initialCdn;
+                log("CDN URL parameter loaded: " + initialCdn);
+            }
+            if (initialUrl) {
+                if (!isLite) {
+                    indexView.style.display = 'none';
+                    serveView.style.display = 'block';
+                    updateActiveTab('serve');
+                }
+                urlInput.value = initialUrl;
+                log("Auto-serving loaded URL from query: " + initialUrl);
+                loadHTML(initialUrl);
+            }
+        });
+    </script>
+</body>
+</html>
