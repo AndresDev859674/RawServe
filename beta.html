@@ -48,7 +48,7 @@
 
         body.retro-active #sidebar-panel {
             grid-area: sidebar !important;
-            border-right: 4px double #ff6a1a !important; 
+            border-right: 4px double #ff6a1a !important;
             background-color: rgba(23, 19, 15, 0.75) !important;
             padding: 25px 15px !important;
             display: flex !important;
@@ -108,7 +108,7 @@
             color: #ff8c3a !important;
             text-decoration: none !important;
             border: 2px solid #ff6a1a !important;
-            border-right: none !important; 
+            border-right: none !important;
             background-color: #120e0a !important;
             margin-right: -17px !important;
             position: relative !important;
@@ -352,7 +352,7 @@
                 <h1 id="brand-title">RawServe</h1>
                 <p id="brand-tagline">Serve any raw HTML file directly in your browser without hosting.</p>
             </div>
-            
+
             <div id="nav-container">
                 <a href="?page=index" id="nav-index"><b>[ Index ]</b></a>
                 <a href="?page=serve" id="nav-serve"><b>[ Serve ]</b></a>
@@ -393,7 +393,9 @@
                                 <td colspan="2">
                                     <center><h2>Links</h2>
                                     <i class="nes-icon github is-large"></i> <a href="https://github.com/AndresDev859674/rawserve" target="_blank">GitHub Repository</a>,
-                                    <i class="nes-icon eye"></i> <a href="https://raw.githubusercontent.com/AndresDev859674/RawServe/refs/heads/main/index.html" target="_blank">RAW index.html</a>
+                                    <i class="nes-icon eye"></i> <a href="https://raw.githubusercontent.com/AndresDev859674/RawServe/refs/heads/main/index.html" target="_blank">RAW index.html</a>,
+
+                                    <i class="nes-icon database"></i> <a href="?page=top" target="_blank">Pages From rawserve</a>
                                     </center>
                                 </td>
                             </tr>
@@ -494,7 +496,7 @@
                                 <td>
                                     <h3>1. Serving Remote Files</h3>
                                     <p>Copy any raw HTML URL (e.g., from a GitHub repository or GitLab snippets) and paste it into the <b>Target HTML URL</b> field in the <i>Serve</i> tab. Click <b>Serve File</b> to render it instantly.</p>
-                                    
+
                                     <h3>2. Using Different CDNs</h3>
                                     <p>GitHub Raw URLs enforce a strict plain text MIME type restriction. Under the hood, RawServe bypasses this using CDN proxies:</p>
                                     <ul>
@@ -511,6 +513,16 @@
                             </tr>
                         </table>
                     </center>
+                </div>
+
+                <div id="top-view" style="display: none;">
+                    <table id="issues-table" border="0" cellpadding="8" width="70%">
+                    <center>
+                        <h2>Pages served by RawServe</h2>
+                    T :
+                   <a href="?serve=b64_aHR0cHM6Ly9naXRsYWIuY29tL0FuZHJlc0Rldjg1OTY3NC90cmVlLWJyb2tlLXRyZWUvLS9yYXcvbWFpbi9UcmVlX2Jyb2tlX1RyZWUuaHRtbD9yZWZfdHlwZT1oZWFkcw&cdn=githack&lite=true" target="_blank">Tree broke Tree</a>
+                   </center>
+                    </table>
                 </div>
 
                 <div id="issues-view" style="display: none;">
@@ -572,6 +584,7 @@
         var indexView = document.getElementById('index-view');
         var serveView = document.getElementById('serve-view');
         var usageView = document.getElementById('usage-view');
+        var topView = document.getElementById('top-view');
         var issuesView = document.getElementById('issues-view');
         var appUi = document.getElementById('app-ui');
         var liteError = document.getElementById('lite-error');
@@ -628,7 +641,7 @@
 
         function getCompatibleUrl(url) {
             log("Processing URL compatibility: " + url);
-            
+
             if (url.indexOf('github.com') !== -1 && url.indexOf('raw.githubusercontent.com') === -1 && url.indexOf('cdn.jsdelivr.net') === -1 && url.indexOf('githack.com') === -1) {
                 log("Standard GitHub URL detected. Translating to raw format.");
                 url = url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
@@ -682,7 +695,7 @@
 
         function renderHTML(html, baseUri, targetUrl) {
             log("Initializing HTML rendering context...");
-            
+
             html = filterCloudflareScripts(html);
 
             var parser = new DOMParser();
@@ -731,70 +744,70 @@
                         const container = document.createElement('div');
                         container.id = 'rawserve-banner-container';
                         container.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; z-index: 2147483647 !important; height: 0 !important; overflow: visible !important;';
-                        
+
                         let shadow;
                         if (container.attachShadow) {
                             shadow = container.attachShadow({mode: 'open'});
                         } else {
                             shadow = container;
                         }
-                        
+
                         const style = document.createElement('style');
                         style.textContent = '.banner-table { width: 100% !important; background-color: #e0e0e0 !important; border: 1px solid #777 !important; border-collapse: collapse !important; margin: 0 !important; padding: 0 !important; font-family: monospace !important; color: #000000 !important; height: 35px !important; } .banner-table td { border: 1px solid #777 !important; padding: 5px !important; vertical-align: middle !important; } .banner-text { font-family: monospace !important; font-size: 12px !important; color: #000000 !important; text-decoration: none !important; } .banner-link { font-family: monospace !important; font-size: 12px !important; color: #0000ee !important; text-decoration: underline !important; font-weight: bold !important; } .banner-btn { cursor: pointer !important; font-family: monospace !important; font-size: 11px !important; background: #d0d0d0 !important; color: #000000 !important; border: 1px solid #777 !important; padding: 1px 4px !important; margin-right: 5px !important; } .show-btn { position: fixed !important; top: 5px !important; right: 5px !important; z-index: 2147483647 !important; cursor: pointer !important; font-family: monospace !important; font-size: 11px !important; background: #e0e0e0 !important; color: #000000 !important; border: 1px solid #000 !important; padding: 2px 5px !important; box-shadow: 0px 1px 3px rgba(0,0,0,0.5) !important; }';
                         shadow.appendChild(style);
-                        
+
                         const table = document.createElement('table');
                         table.className = 'banner-table';
-                        
+
                         const row = document.createElement('tr');
-                        
+
                         const cell1 = document.createElement('td');
                         cell1.setAttribute('width', '20%');
                         cell1.innerHTML = '<span class="banner-text"><b>[ RawServe ]</b></span>';
                         row.appendChild(cell1);
-                        
+
                         const cell2 = document.createElement('td');
                         cell2.setAttribute('align', 'center');
                         cell2.innerHTML = '<span class="banner-text">Currently serving: <u>' + targetUrl + '</u></span>';
                         row.appendChild(cell2);
-                        
+
                         const cell3 = document.createElement('td');
                         cell3.setAttribute('width', '25%');
                         cell3.setAttribute('align', 'right');
-                        
+
                         const hideBtn = document.createElement('button');
                         hideBtn.className = 'banner-btn';
                         hideBtn.textContent = '[ Hide ]';
                         cell3.appendChild(hideBtn);
-                        
+
                         const exitLink = document.createElement('a');
                         exitLink.className = 'banner-link';
                         exitLink.setAttribute('href', returnUrl);
                         exitLink.innerHTML = '<b>[ EXIT NAV ]</b>';
                         cell3.appendChild(exitLink);
-                        
+
                         row.appendChild(cell3);
                         table.appendChild(row);
                         shadow.appendChild(table);
-                        
+
                         const showBtn = document.createElement('button');
                         showBtn.className = 'show-btn';
                         showBtn.style.display = 'none';
                         showBtn.textContent = '[ Show RawServe Nav ]';
                         shadow.appendChild(showBtn);
-                        
+
                         hideBtn.addEventListener('click', function() {
                             table.style.display = 'none';
                             showBtn.style.display = 'block';
                             document.body.style.paddingTop = '0px';
                         });
-                        
+
                         showBtn.addEventListener('click', function() {
                             table.style.display = 'table';
                             showBtn.style.display = 'none';
                             document.body.style.paddingTop = '45px';
                         });
-                        
+
                         document.body.insertBefore(container, document.body.firstChild);
                         document.body.style.paddingTop = "45px";
                     })();
@@ -814,10 +827,10 @@
             var isCss = getQueryParam('css') === 'true';
             var cssParam = isCss ? '&css=true' : '';
             var returnUrl = window.location.origin + window.location.pathname + '?page=serve' + cssParam;
-            
+
             var html = '';
             html += '<!DOCTYPE html><html><head><title>RawServe Preview - ' + type + '</title>';
-            
+
             if (isCss) {
                 html += '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">';
                 html += '<style>' +
@@ -835,7 +848,7 @@
                     '</style>';
             }
             html += '</head><body>';
-            
+
             html += '<div style="position: fixed; top: 0; left: 0; width: 100%; background: #333; color: #fff; padding: 10px; text-align: left; font-family: monospace; z-index: 9999;">';
             html += '<b>[ RawServe ]</b> Currently serving static media: <a href="' + returnUrl + '" style="color: #ff6a1a; font-weight: bold; text-decoration: underline;">[ RETURN ]</a>';
             html += '</div>';
@@ -910,10 +923,10 @@
             }
 
             log("Fetching active resource from URL via XHR: " + fetchUrl);
-            
+
             var xhr = new XMLHttpRequest();
             xhr.open('GET', fetchUrl, true);
-            
+
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 2) {
                     var contentType = xhr.getResponseHeader("Content-Type");
@@ -975,10 +988,10 @@
             var isNavChecked = toggleNav.checked;
             var isCompressChecked = toggleCompress.checked;
             var isCss = getQueryParam('css') === 'true';
-            
+
             if (url) {
                 log("User manually initiated serve pipeline.");
-                
+
                 var targetUrlParam = url;
                 if (isCompressChecked) {
                     targetUrlParam = encodeUrlParam(url);
@@ -1036,11 +1049,11 @@
                 var hours = String(now.getHours());
                 var minutes = String(now.getMinutes());
                 var seconds = String(now.getSeconds());
-                
+
                 if (hours.length < 2) hours = '0' + hours;
                 if (minutes.length < 2) minutes = '0' + minutes;
                 if (seconds.length < 2) seconds = '0' + seconds;
-                
+
                 timeEl.innerText = '[ TIME: ' + hours + ':' + minutes + ':' + seconds + ' ]';
             }
         }
@@ -1059,7 +1072,7 @@
         window.addEventListener('load', function() {
             consoleBox.hidden = !toggleConsole.checked;
             log("RawServe instance loaded. Checking parameters.");
-            
+
             var isIsolated = window.crossOriginIsolated;
             log("Cross-Origin Isolation status: " + (isIsolated ? "ENABLED" : "DISABLED (Multithreaded WebAssembly/SharedArrayBuffer will fail)"));
 
@@ -1070,7 +1083,7 @@
             if (isCss) {
                 log("Applying Retro Sidebar UI layout overlay dynamically.");
                 styleSelect.value = 'css';
-                
+
                 document.body.className = "retro-active";
 
                 var allLinks = document.querySelectorAll('a');
@@ -1118,6 +1131,8 @@
                     usageView.style.display = 'block';
                 } else if (page === 'issues') {
                     issuesView.style.display = 'block';
+                } else if (page === 'top') {
+                    topView.style.display = 'block';
                 } else {
                     indexView.style.display = 'block';
                 }
@@ -1127,7 +1142,7 @@
 
             var initialUrlRaw = getQueryParam('serve');
             var initialUrl = decodeUrlParam(initialUrlRaw);
-            
+
             if (initialUrlRaw && initialUrlRaw.indexOf('b64_') === 0) {
                 toggleCompress.checked = true;
                 log("Encoded URL detected. Successfully decoded payload: " + initialUrl);
@@ -1152,4 +1167,3 @@
     </script>
 </body>
 </html>
- 
