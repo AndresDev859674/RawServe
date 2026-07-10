@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RawServe - Web Importer</title>
+    <link class="rawserve-icon" rel="icon" href="icon16.png" sizes="16x16">
+    <link class="rawserve-icon" rel="icon" href="icon32.png" sizes="32x32">
+    <style>
+        /* Pestañas controladas localmente por CSS Puro (Cero recargas de página) */
+        #tab-index, #tab-serve { display: none; }
+        #index-view, #serve-view { display: none; }
+        #tab-index:checked ~ #app-ui #index-view { display: block; }
+        #tab-serve:checked ~ #app-ui #serve-view { display: block; }
+        .tab-button { cursor: pointer; font-weight: bold; color: blue; text-decoration: underline; }
+        .tab-button:hover { color: red; }
+    </style>
+</head>
+<body>
+
+    <!-- Estado local de navegación -->
+    <input type="radio" id="tab-index" name="navigation" checked>
+    <input type="radio" id="tab-serve" name="navigation">
+
+    <div id="app-ui">
+        <center>
+            <h1>RawServe</h1>
+            <p>Serve any raw HTML file directly in your browser without hosting.</p>
+
+            <table border="0" cellpadding="10">
+                <tr>
+                    <td><label for="tab-index" class="tab-button">[ Index ]</label></td>
+                    <td><label for="tab-serve" class="tab-button">[ Serve ]</label></td>
+                </tr>
+            </table>
+            <hr>
+        </center>
+
+        <div id="index-view">
+            <center>
+                <p style="margin: 0; background-color: #00AAAA; font-family: Liberation Mono; font-weight: bold;">YOU ARE USING THE BASIC VERSION!</p>
+                <p style="margin: 0; background-color: blue; color: #999999; font-family: Liberation Mono; font-weight: bold;">----------------------</p>
+                <p style="margin: 0; background-color: blue; color: red; font-family: Liberation Mono; font-weight: bold;">THIS MAY CAUSE PROBLEMS DISPLAYING WEB PAGES! You can update this in the github repo</p>
+                <h2>Welcome to RawServe</h2>
+                <table border="0" cellpadding="8" width="60%">
+                    <tr>
+                        <td>
+                            <p>RawServe is a lightweight, zero-hosting web importer designed to fetch and render raw HTML pages directly inside your browser. By resolving dependency paths natively on-the-fly, you can instantly test and display your files without deployment pipelines or CORS headaches.</p>
+                        </td>
+                    </tr>
+                </table>
+
+                <h4>Our Main Features is :</h4>
+                <ul>
+                    <li>It's Fast</li>
+                    <li>Simple UI, No Bullshit, Just Works.</li>
+                    <li>100% Free and Open Source</li>
+                    <li>Absolute Privacy, They are actually URLs that provide a view of RAW html and nothing else</li>
+                </ul>
+            </center>
+        </div>
+
+        <div id="serve-view">
+            <table align="center" border="0" cellpadding="5">
+                <tr>
+                    <td><b>Target HTML URL:</b></td>
+                    <td>
+                        <input type="text" id="url" size="60" placeholder="https://raw.githubusercontent.com/.../index.html">
+                    </td>
+                    <td>
+                        <button type="button" id="btn" onclick="processServe()">Serve File</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>CDN Provider:</b></td>
+                    <td>
+                        <select id="cdn">
+                            <option value="githack">GitHack (raw.githack.com)</option>
+                            <option value="jsdelivr">jsDelivr (cdn.jsdelivr.net) [Unstable/Maintenance]</option>
+                        </select>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><b>Local HTML File:</b></td>
+                    <td>
+                        <input type="file" id="file" accept=".html,.htm" onchange="processLocalFile(event)">
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><b>Lite Mode:</b></td>
+                    <td>
+                        <input type="checkbox" id="toggleLite"> Enable Lite Mode (No UI, fetch content directly)
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><b>URL Generation:</b></td>
+                    <td>
+                        <!-- AQUÍ ESTÁ EL CHECKBOX QUE ME PEDISTE -->
+                        <input type="checkbox" id="toggleParam" checked> Force <b>?serve=</b> in browser address bar
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><b>Diagnostics:</b></td>
+                    <td>
+                        <input type="checkbox" id="toggleConsole" onchange="toggleConsoleVisibility()"> Show Advanced Console Logs
+                    </td>
+                    <td></td>
+                </tr>
+            </table>
+
+            <center>
+                <p id="status"></p>
+                <textarea id="console" rows="12" cols="85" readonly hidden></textarea>
+            </center>
+        </div>
+
+        <hr>
+        <center>
+            <small>We dont need pay for hosting!</small>
+        </center>
+    </div>
+
+    <div id="lite-error" style="display: none;"></div>
+
+    <script type="text/javascript">
+        var urlInput = document.getElementById('url');
+        var cdnSelect = document.getElementById('cdn');
+        var statusText = document.getElementById('status');
+        var toggleLite = document.getElementById('toggleLite');
+        var toggleParam = document.getElementById('toggleParam');
+        var consoleBox = document.getElementById('console');
+        var appUi = document.getElementById('app-ui');
+        var liteError = document.getElementById('lite-error');
+
+        function log(message) {
+            var time = new Date().toLocaleTimeString();
+            consoleBox.value += "[" + time + "] " + message + "\n";
+            consoleBox.scrollTop = consoleBox.scrollHeight;
+        }
+
+        function getQueryParam(name) {
+            name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+            var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
+            var results = regex.exec(window.location.search);
+            return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+        }
+
+        function toggleConsoleVisibility() {
+            var check = document.getElementById('toggleConsole');
+            consoleBox.hidden = !check.checked;
+        }
+
+        function getCompatibleUrl(url) {
+            log("Processing URL compatibility: " + url);
+            if (url.indexOf('gitlab.com') !== -1 && url.indexOf('?') !== -1) {
+                url = url.split('?')[0];
+            }
+            if (url.indexOf('github.com') !== -1 && url.indexOf('raw.githubusercontent.com') === -1 && url.indexOf('cdn.jsdelivr.net') === -1 && url.indexOf('githack.com') === -1) {
+                url = url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
+            }
+            if (url.indexOf('gitlab.com') !== -1 && url.indexOf('gl.githack.com') === -1) {
+                return url.replace('gitlab.com', 'gl.githack.com');
+            }
+            if (url.indexOf('raw.githubusercontent.com') === -1) {
+                return url;
+            }
+
+            var provider = cdnSelect.value;
+            if (provider === 'jsdelivr') {
+                var clean = url.replace('https://raw.githubusercontent.com/', '');
+                var parts = clean.split('/');
+                if (parts.length < 3) return url;
+                var user = parts[0], repo = parts[1], ref = '', path = '';
+                if (parts[2] === 'refs' && parts[3] === 'heads' && parts.length > 4) {
+                    ref = 'refs/heads/' + parts[4];
+                    path = parts.slice(5).join('/');
+                } else {
+                    ref = parts[2];
+                    path = parts.slice(3).join('/');
+                }
+                return 'https://cdn.jsdelivr.net/gh/' + user + '/' + repo + '@' + ref + '/' + path;
+            } else {
+                return url.replace('raw.githubusercontent.com', 'raw.githack.com');
+            }
+        }
+
+        function renderHTML(html, baseUri) {
+            log("Initializing HTML rendering context...");
+            if (baseUri) {
+                var baseTag = '<base href="' + getCompatibleUrl(baseUri) + '">';
+                if (html.indexOf('<head>') !== -1) html = html.replace('<head>', '<head>' + baseTag);
+                else if (html.indexOf('<html>') !== -1) html = html.replace('<html>', '<html><head>' + baseTag + '</head>');
+                else html = baseTag + html;
+            }
+            document.open();
+            document.write(html);
+            document.close();
+        }
+
+        function loadHTML(url) {
+            if (!url) return;
+            var isLite = toggleLite.checked;
+            if (isLite) {
+                appUi.style.display = 'none';
+                document.title = "Fetching Resource...";
+            }
+
+            statusText.innerText = "Fetching resource...";
+            var fetchUrl = getCompatibleUrl(url);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', fetchUrl, true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        renderHTML(xhr.responseText, url.substring(0, url.lastIndexOf('/') + 1));
+                    } else {
+                        if (isLite) {
+                            liteError.innerHTML = "<font color='red'><b>Error:</b> Fetch failed (" + xhr.status + ")</font>";
+                            liteError.style.display = "block";
+                        } else {
+                            statusText.innerText = "Error: Status " + xhr.status;
+                        }
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        function processServe() {
+            var url = urlInput.value.replace(/^\s+|\s+$/g, '');
+            if (!url) return;
+
+            if (toggleParam.checked) {
+                var newSearch = '?serve=' + encodeURIComponent(url) + '&cdn=' + cdnSelect.value;
+                if (toggleLite.checked) {
+                    newSearch += '&lite=true';
+                }
+                window.location.search = newSearch;
+            }
+
+            else {
+                loadHTML(url);
+            }
+        }
+
+        function processLocalFile(e) {
+            var file = e.target.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function(evt) { renderHTML(evt.target.result, ""); };
+            reader.readAsText(file);
+        }
+
+        window.onload = function() {
+            var paramServe = getQueryParam('serve');
+            var paramCdn = getQueryParam('cdn');
+            var paramLite = getQueryParam('lite');
+
+            if (paramCdn) cdnSelect.value = paramCdn;
+            if (paramLite === 'true') toggleLite.checked = true;
+
+            if (paramServe) {
+                urlInput.value = paramServe;
+                if (paramLite !== 'true') {
+                    document.getElementById('tab-serve').checked = true;
+                }
+                loadHTML(paramServe);
+            }
+        };
+    </script>
+</body>
+</html>
