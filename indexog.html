@@ -2,21 +2,18 @@
 <html>
 <head>
     <title>RawServe - Web Importer</title>
-    <link class="rawserve-icon" rel="icon" href="icon16.png" sizes="16x16">
-    <link class="rawserve-icon" rel="icon" href="icon32.png" sizes="32x32">
+    <link class="rawserve-icon" rel="icon" href="icon.svg" type="image/svg+xml">
 </head>
 <body>
     <div id="app-ui">
         <center>
             <h1>RawServe</h1>
             <p>Serve any raw HTML file directly in your browser without hosting.</p>
-
+            
             <table border="0" cellpadding="10">
                 <tr>
                     <td><a href="?page=index"><b>[ Index ]</b></a></td>
                     <td><a href="?page=serve"><b>[ Serve ]</b></a></td>
-                    <td><a href="?page=usage"><b>[ Usage ]</b></a></td>
-                    <td><a href="?page=issues"><b>[ Known Issues ]</b></a></td>
                 </tr>
             </table>
             <hr>
@@ -32,25 +29,6 @@
                             <p>RawServe is a lightweight, zero-hosting web importer designed to fetch and render raw HTML pages directly inside your browser. By resolving dependency paths natively on-the-fly, you can instantly test and display your files without deployment pipelines or CORS headaches.</p>
                         </td>
                     </tr>
-                </table>
-
-                <table border="0" cellpadding="8" width="60%">
-                <tbody>
-                    <tr>
-                        <td colspan="2">
-                            <center><h2>Links & Alternatives</h2>
-                             <a href="https://github.com/AndresDev859674/rawserve" target="_blank">GitHub Repository</a>,
-                             <a href="https://raw.githubusercontent.com/AndresDev859674/RawServe/refs/heads/main/index.html" target="_blank">RAW index.html</a>,
-
-                             <a href="https://ko-fi.com/andrew4630">Sponsor this project!</a>
-                            </center>
-                            <center>
-                             <a href="https://rawserve.pages.dev/beta" target="_blank">Beta Version</a>,
-                             <a href="https://rawserve.pages.dev/basic" target="_blank">Basic Version</a>
-                            </center>
-                        </td>
-                    </tr>
-                </tbody>
                 </table>
 
                 <h4>Our Main Features is :</h4>
@@ -108,13 +86,6 @@
                     <td></td>
                 </tr>
                 <tr>
-                    <td><b>Control Panel:</b></td>
-                    <td>
-                        <input type="checkbox" id="toggleNav"> Show RawServe Top Banner (Can broke Pages!)
-                    </td>
-                    <td></td>
-                </tr>
-                <tr>
                     <td><b>Diagnostics:</b></td>
                     <td>
                         <input type="checkbox" id="toggleConsole"> Show Advanced Console Logs
@@ -126,62 +97,6 @@
             <center>
                 <p id="status"></p>
                 <textarea id="console" rows="12" cols="85" readonly hidden></textarea>
-            </center>
-        </div>
-
-        <div id="usage-view" style="display: none;">
-            <center>
-                <h2>How to Use RawServe</h2>
-                <table border="0" cellpadding="8" width="70%">
-                    <tr>
-                        <td>
-                            <h3>1. Serving Remote Files</h3>
-                            <p>Copy any raw HTML URL (e.g., from a GitHub repository or GitLab snippets) and paste it into the <b>Target HTML URL</b> field in the <i>Serve</i> tab. Click <b>Serve File</b> to render it instantly.</p>
-
-                            <h3>2. Using Different CDNs</h3>
-                            <p>GitHub Raw URLs enforce a strict plain text MIME type restriction. Under the hood, RawServe bypasses this using CDN proxies:</p>
-                            <ul>
-                                <li><b>GitHack (Recommended):</b> Directly routes requests and maps correct MIME headers so CSS and JS execute instantly.</li>
-                                <li><b>jsDelivr:</b> An alternative CDN for public repository asset distribution.</li>
-                            </ul>
-
-                            <h3>3. Offline Local Sandbox</h3>
-                            <p>To safely test and execute local code without setting up a localhost environment, click on <b>Choose File</b> / <b>Browse</b> under <i>Local HTML File</i>. The browser will parse and run the code completely offline.</p>
-
-                            <h3>4. Lite Mode & Embeds</h3>
-                            <p>Check the <b>Enable Lite Mode</b> option before submitting a URL. This will hide RawServe's user interface entirely and load the page in absolute full screen. This is perfect for generating permanent direct links or embeds.</p>
-                        </td>
-                    </tr>
-                </table>
-            </center>
-        </div>
-
-        <div id="issues-view" style="display: none;">
-            <center>
-                <h2>Known Issues & Limitations</h2>
-                <table border="0" cellpadding="8" width="70%">
-                    <tr>
-                        <td>
-                            <h3>1. Root-Relative Asset URLs</h3>
-                            <p>If the source HTML file references assets using absolute root paths (e.g., <code>/style.css</code> or <code>/js/app.js</code> instead of relative <code>style.css</code> or <code>./style.css</code>), they will resolve to RawServe's host domain instead of the source repository, causing a 404 error.</p>
-
-                            <h3>2. Local CORS Restriction (file:///)</h3>
-                            <p>Modern browsers block JavaScript <code>fetch()</code> requests to local <code>file:///</code> paths due to strict Same-Origin security policies. RawServe cannot fetch local files using standard input URLs. Use the <b>Local HTML File</b> selector to upload and read local files.</p>
-
-                            <h3>3. JavaScript SPA Routers</h3>
-                            <p>Single Page Applications built with complex dynamic routing (such as React Router or Vue Router utilizing HTML5 History API) may break upon manual refresh or routing, as RawServe does not configure custom dynamic server fallbacks.</p>
-
-                            <h3>4. Third-Party CORS Blockers</h3>
-                            <p>External APIs and fonts that do not permit cross-origin requests (CORS) might still refuse to load when imported outside of their white-listed domains.</p>
-
-                            <h3>5. SharedArrayBuffer & Cross-Origin Isolation (Godot 4/Wasm)</h3>
-                            <p>Modern game engines (like Godot 4 Web builds) rely on WebAssembly multithreading and require <code>SharedArrayBuffer</code>. Browsers strictly block these APIs unless the document is served with <b>Cross-Origin Isolation</b> headers (COOP and COEP). Since RawServe runs entirely on the client-side (and often loaded locally over <code>file:///</code> or proxy CDNs), it cannot force these security headers natively. To load multithreaded games, you must host RawServe on a local or cloud web server (like Vercel or local Python server) configured to return COOP/COEP headers, or export your Godot project using the <i>single-threaded</i> template fallback.</p>
-
-                            <h3>6. Modern JS/TS Frameworks (Svelte, Next.js, Nuxt, etc.)</h3>
-                            <p>RawServe handles static client-side HTML, CSS, and JS. Modern development frameworks like Next.js, Nuxt, SvelteKit, or Remix rely on complex bundlers (like Vite, Webpack, or Turbopack) and Node.js server-side environments (SSR/Serverless functions). Directly serving raw uncompiled source code from these frameworks will not work because the browser cannot compile raw JSX, Svelte templates, or TypeScript on-the-fly. To run projects built with these frameworks via RawServe, you must first compile them locally or in CI, and serve their fully bundled static production export (usually located inside the exported <code>dist</code> or <code>out</code> directories).</p>
-                        </td>
-                    </tr>
-                </table>
             </center>
         </div>
 
@@ -201,12 +116,9 @@
         const statusText = document.getElementById('status');
         const toggleConsole = document.getElementById('toggleConsole');
         const toggleLite = document.getElementById('toggleLite');
-        const toggleNav = document.getElementById('toggleNav');
         const consoleBox = document.getElementById('console');
         const indexView = document.getElementById('index-view');
         const serveView = document.getElementById('serve-view');
-        const usageView = document.getElementById('usage-view');
-        const issuesView = document.getElementById('issues-view');
         const appUi = document.getElementById('app-ui');
         const liteError = document.getElementById('lite-error');
 
@@ -215,6 +127,7 @@
             return params.get(param);
         }
 
+        // Dejado en inglés y completamente libre de comentarios descriptivos
         function log(message) {
             const time = new Date().toLocaleTimeString();
             consoleBox.value += "[" + time + "] " + message + "\n";
@@ -223,7 +136,7 @@
 
         function getCompatibleUrl(url) {
             log("Processing URL compatibility: " + url);
-
+            
             if (url.includes('github.com') && !url.includes('raw.githubusercontent.com') && !url.includes('cdn.jsdelivr.net') && !url.includes('githack.com')) {
                 log("Standard GitHub URL detected. Translating to raw format.");
                 url = url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
@@ -268,7 +181,7 @@
             }
         }
 
-        function renderHTML(html, baseUri, targetUrl) {
+        function renderHTML(html, baseUri) {
             log("Initializing HTML rendering context...");
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
@@ -301,84 +214,6 @@
                     }
                 }
             });
-
-            const showNav = getQueryParam('nav') === 'true';
-            if (showNav && doc.body) {
-                log("Injecting top navigation control banner...");
-                const returnUrl = window.location.origin + window.location.pathname + '?page=serve';
-                const bannerScript = doc.createElement('script');
-                bannerScript.textContent = `
-                    (function() {
-                        const targetUrl = decodeURIComponent("${encodeURIComponent(targetUrl)}");
-                        const returnUrl = decodeURIComponent("${encodeURIComponent(returnUrl)}");
-                        const container = document.createElement('div');
-                        container.id = 'rawserve-banner-container';
-                        container.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; z-index: 2147483647 !important; height: 0 !important; overflow: visible !important;';
-
-                        const shadow = container.attachShadow({mode: 'open'});
-
-                        const style = document.createElement('style');
-                        style.textContent = '.banner-table { width: 100% !important; background-color: #e0e0e0 !important; border: 1px solid #777 !important; border-collapse: collapse !important; margin: 0 !important; padding: 0 !important; font-family: monospace !important; color: #000000 !important; height: 35px !important; } .banner-table td { border: 1px solid #777 !important; padding: 5px !important; vertical-align: middle !important; } .banner-text { font-family: monospace !important; font-size: 12px !important; color: #000000 !important; text-decoration: none !important; } .banner-link { font-family: monospace !important; font-size: 12px !important; color: #0000ee !important; text-decoration: underline !important; font-weight: bold !important; } .banner-btn { cursor: pointer !important; font-family: monospace !important; font-size: 11px !important; background: #d0d0d0 !important; color: #000000 !important; border: 1px solid #777 !important; padding: 1px 4px !important; margin-right: 5px !important; } .show-btn { position: fixed !important; top: 5px !important; right: 5px !important; z-index: 2147483647 !important; cursor: pointer !important; font-family: monospace !important; font-size: 11px !important; background: #e0e0e0 !important; color: #000000 !important; border: 1px solid #000 !important; padding: 2px 5px !important; box-shadow: 0px 1px 3px rgba(0,0,0,0.5) !important; }';
-                        shadow.appendChild(style);
-
-                        const table = document.createElement('table');
-                        table.className = 'banner-table';
-
-                        const row = document.createElement('tr');
-
-                        const cell1 = document.createElement('td');
-                        cell1.setAttribute('width', '20%');
-                        cell1.innerHTML = '<span class="banner-text"><b>[ RawServe ]</b></span>';
-                        row.appendChild(cell1);
-
-                        const cell2 = document.createElement('td');
-                        cell2.setAttribute('align', 'center');
-                        cell2.innerHTML = '<span class="banner-text">Currently serving: <u>' + targetUrl + '</u></span>';
-                        row.appendChild(cell2);
-
-                        const cell3 = document.createElement('td');
-                        cell3.setAttribute('width', '25%');
-                        cell3.setAttribute('align', 'right');
-
-                        const hideBtn = document.createElement('button');
-                        hideBtn.className = 'banner-btn';
-                        hideBtn.textContent = '[ Hide ]';
-                        cell3.appendChild(hideBtn);
-
-                        const exitLink = document.createElement('a');
-                        exitLink.className = 'banner-link';
-                        exitLink.setAttribute('href', returnUrl);
-                        exitLink.innerHTML = '<b>[ EXIT NAV ]</b>';
-                        cell3.appendChild(exitLink);
-
-                        row.appendChild(cell3);
-                        table.appendChild(row);
-                        shadow.appendChild(table);
-
-                        const showBtn = document.createElement('button');
-                        showBtn.className = 'show-btn';
-                        showBtn.style.display = 'none';
-                        showBtn.textContent = '[ Show RawServe Nav ]';
-                        shadow.appendChild(showBtn);
-
-                        hideBtn.addEventListener('click', function() {
-                            table.style.display = 'none';
-                            showBtn.style.display = 'block';
-                            document.body.style.paddingTop = '0px';
-                        });
-
-                        showBtn.addEventListener('click', function() {
-                            table.style.display = 'table';
-                            showBtn.style.display = 'none';
-                            document.body.style.paddingTop = '45px';
-                        });
-
-                        document.body.insertBefore(container, document.body.firstChild);
-                        document.body.style.paddingTop = "45px";
-                    })();
-                `;
-                doc.body.appendChild(bannerScript);
-            }
 
             log("Rewriting document DOM stream...");
             document.open();
@@ -430,7 +265,7 @@
                     statusText.innerText = "Rendering content...";
                     const baseUri = url.substring(0, url.lastIndexOf('/') + 1);
                     log("Computing base directory path: " + baseUri);
-                    renderHTML(html, baseUri, url);
+                    renderHTML(html, baseUri);
                 })
                 .catch(error => {
                     log("An error occurred during transaction processing: " + error.message);
@@ -448,15 +283,11 @@
             const url = urlInput.value.trim();
             const cdn = cdnSelect.value;
             const isLiteChecked = toggleLite.checked;
-            const isNavChecked = toggleNav.checked;
             if (url) {
                 log("User manually initiated serve pipeline.");
                 let queryParams = '?serve=' + encodeURIComponent(url) + '&cdn=' + encodeURIComponent(cdn);
                 if (isLiteChecked) {
                     queryParams += '&lite=true';
-                }
-                if (isNavChecked) {
-                    queryParams += '&nav=true';
                 }
                 window.history.pushState({}, '', queryParams);
                 loadHTML(url);
@@ -471,7 +302,7 @@
             const reader = new FileReader();
             reader.onload = function(evt) {
                 log("Local file read successful. Loading content into renderer.");
-                renderHTML(evt.target.result, "", file.name);
+                renderHTML(evt.target.result, "");
             };
             reader.readAsText(file);
         });
@@ -484,18 +315,9 @@
         window.addEventListener('load', function() {
             consoleBox.hidden = !toggleConsole.checked;
             log("RawServe instance loaded. Checking parameters.");
-
-            const isIsolated = window.crossOriginIsolated;
-            log("Cross-Origin Isolation status: " + (isIsolated ? "ENABLED" : "DISABLED (Multithreaded WebAssembly/SharedArrayBuffer will fail)"));
-            if (!isIsolated && window.location.protocol === 'file:') {
-                log("Warning: Operating under local file:// context. Cross-Origin isolation is impossible on this protocol.");
-            }
-
+            
             const isLite = getQueryParam('lite') === 'true';
             toggleLite.checked = isLite;
-
-            const isNav = getQueryParam('nav') === 'true';
-            toggleNav.checked = isNav;
 
             if (isLite) {
                 appUi.style.display = 'none';
@@ -503,19 +325,12 @@
                 if (icon) icon.remove();
             } else {
                 const page = getQueryParam('page') || 'index';
-                indexView.style.display = 'none';
-                serveView.style.display = 'none';
-                usageView.style.display = 'none';
-                issuesView.style.display = 'none';
-
                 if (page === 'serve') {
+                    indexView.style.display = 'none';
                     serveView.style.display = 'block';
-                } else if (page === 'usage') {
-                    usageView.style.display = 'block';
-                } else if (page === 'issues') {
-                    issuesView.style.display = 'block';
                 } else {
                     indexView.style.display = 'block';
+                    serveView.style.display = 'none';
                 }
             }
 
